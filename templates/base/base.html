@@ -1,0 +1,391 @@
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="{% block meta_description %}Discover cities across America with AI-powered guides, demographics, and local insights.{% endblock %}">
+    <meta name="keywords" content="{% block meta_keywords %}city guide, demographics, census data, tourism{% endblock %}">
+    {% block robots %}{% endblock %}
+    <title>{% block title %}{{ site.display_name|default:"City Directory" }}{% endblock %}</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/static/favicon.png">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS (via CDN for now, will compile locally later) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --primary-color: {{ site.primary_color|default:"#2E7D32" }};
+            --primary-dark: {{ site.primary_color|default:"#1B5E20" }};
+            --primary-light: {{ site.primary_color|default:"#66BB6A" }};
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .bg-primary {
+            background-color: var(--primary-color);
+        }
+        
+        .text-primary {
+            color: var(--primary-color);
+        }
+        
+        .border-primary {
+            border-color: var(--primary-color);
+        }
+        
+        .hover\:bg-primary:hover {
+            background-color: var(--primary-color);
+        }
+        
+        .hover\:text-primary:hover {
+            color: var(--primary-color);
+        }
+        
+        /* High Contrast Toggle (inherited from CloudCertifiedSupport) */
+        @media (prefers-contrast: more) {
+            body {
+                background-color: #000;
+                color: #FFF;
+            }
+        }
+        
+        body.high-contrast {
+            background-color: #000;
+            color: #FFF;
+        }
+        
+        body.high-contrast a {
+            color: #FFD700;
+            text-decoration: underline;
+        }
+        
+        body.high-contrast .bg-white {
+            background-color: #1a1a1a !important;
+        }
+        
+        body.high-contrast .text-gray-900 {
+            color: #FFF !important;
+        }
+        
+        body.high-contrast .text-gray-600 {
+            color: #CCC !important;
+        }
+        
+        /* Preview Mode - Hide Admin Elements */
+        body.preview-mode .admin-only {
+            display: none !important;
+        }
+        
+        body.preview-mode #preview-toggle {
+            display: block !important; /* Keep the toggle visible so user can exit preview mode */
+            background-color: #10B981;
+            border-color: #10B981;
+        }
+        
+        body.preview-mode #preview-toggle span {
+            color: white;
+        }
+        
+        body.preview-mode #preview-toggle svg {
+            color: white;
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+    
+    <!-- Google Analytics -->
+    {% if site.google_analytics_id %}
+    <script async src="https://www.googletagmanager.com/gtag/js?id={{ site.google_analytics_id }}"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', '{{ site.google_analytics_id }}');
+    </script>
+    {% endif %}
+</head>
+<body class="bg-gray-50 text-gray-900">
+    
+    <!-- Navigation -->
+    <nav class="bg-white shadow-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <!-- Logo/Brand -->
+                <div class="flex items-center">
+                    <a href="/" class="flex items-center space-x-3">
+                        {% if site.logo %}
+                        <img src="{{ site.logo.url }}" alt="{{ site.display_name }}" class="h-10 w-auto">
+                        {% else %}
+                        <svg class="h-8 w-8 text-primary" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+                        </svg>
+                        {% endif %}
+                        <span class="text-xl font-bold text-gray-900">{{ site.display_name|default:"City Directory" }}</span>
+                    </a>
+                </div>
+                
+                <!-- Desktop Navigation -->
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="{% url 'home' %}" class="text-gray-700 hover:text-primary transition">Home</a>
+                    <a href="{% url 'cities_list' %}" class="text-gray-700 hover:text-primary transition">All Cities</a>
+                    <a href="{% url 'article_list' %}" class="text-gray-700 hover:text-primary transition">Articles</a>
+                    <a href="{% url 'master_calendar' %}" class="text-gray-700 hover:text-primary transition">Events</a>
+                    <a href="{% url 'business_directory' %}" class="text-gray-700 hover:text-primary transition">Business Directory</a>
+                    <a href="{% url 'about' %}" class="text-gray-700 hover:text-primary transition">About</a>
+                    
+                    <!-- Preview Mode Toggle (Admin) -->
+                    {% if user.is_authenticated %}
+                    <button id="preview-toggle" class="px-3 py-2 rounded-lg border-2 border-blue-500 bg-blue-50 hover:bg-blue-100 transition admin-only" title="Toggle Preview Mode (View as Public User)">
+                        <svg class="h-5 w-5 inline-block text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                        <span class="ml-1 text-sm font-medium text-blue-600">Preview</span>
+                    </button>
+                    {% endif %}
+                    
+                    <!-- High Contrast Toggle -->
+                    <button id="contrast-toggle" class="p-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition" title="Toggle High Contrast">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                    </button>
+                    <!-- MS Partner badge (nav, small) -->
+                    <a href="https://partner.microsoft.com" target="_blank" rel="noopener" title="Microsoft Partner Network">
+                        <img src="/static/images/microsoft-partner.png" alt="Microsoft Partner" class="h-6 w-auto opacity-75 hover:opacity-100 transition" onerror="this.style.display='none'">
+                    </a>
+
+                    <!-- Language Switcher -->
+                    {% get_current_language as CURRENT_LANG %}
+                    <div class="relative" id="lang-switcher">
+                        <button onclick="document.getElementById('lang-menu').classList.toggle('hidden')" class="flex items-center space-x-1 px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition text-sm font-medium text-gray-700">
+                            <span>🌐 {{ CURRENT_LANG|upper|slice:":2" }}</span>
+                            <svg class="h-3 w-3 ml-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+                        </button>
+                        <div id="lang-menu" class="hidden absolute right-0 mt-1 w-40 bg-white rounded-lg shadow-lg border border-gray-200 z-50 py-1">
+                            {% get_available_languages as LANGUAGES_LIST %}
+                            {% for lang_code, lang_name in LANGUAGES_LIST %}
+                            <form action="{% url 'set_language' %}" method="post" class="block">
+                                {% csrf_token %}
+                                <input type="hidden" name="language" value="{{ lang_code }}">
+                                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                <button type="submit" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition {% if lang_code == CURRENT_LANG %}font-bold text-primary{% else %}text-gray-700{% endif %}">
+                                    {{ lang_name }}
+                                </button>
+                            </form>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <script>
+                    // Close language dropdown when clicking outside
+                    document.addEventListener('click', function(e) {
+                        var sw = document.getElementById('lang-switcher');
+                        var menu = document.getElementById('lang-menu');
+                        if (sw && menu && !sw.contains(e.target)) { menu.classList.add('hidden'); }
+                    });
+                    </script>
+                    
+                    <!-- User Menu -->
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'profile' %}" class="text-gray-700 hover:text-primary transition admin-only">
+                        <svg class="h-6 w-6 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                    </a>
+                    {% else %}
+                    <a href="{% url 'login' %}" class="text-gray-700 hover:text-primary transition">Login</a>
+                    {% endif %}
+                </div>
+                
+                <!-- Mobile Menu Button -->
+                <div class="md:hidden flex items-center">
+                    <button id="mobile-menu-button" class="text-gray-700 hover:text-primary focus:outline-none">
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-gray-200">
+            <div class="px-4 pt-2 pb-4 space-y-2">
+                <a href="{% url 'home' %}" class="block py-2 text-gray-700 hover:text-primary transition">Home</a>
+                <a href="{% url 'cities_list' %}" class="block py-2 text-gray-700 hover:text-primary transition">All Cities</a>
+                <a href="{% url 'article_list' %}" class="block py-2 text-gray-700 hover:text-primary transition">Articles</a>
+                <a href="{% url 'master_calendar' %}" class="block py-2 text-gray-700 hover:text-primary transition">Events</a>
+                <a href="{% url 'business_directory' %}" class="block py-2 text-gray-700 hover:text-primary transition">Business Directory</a>
+                <a href="{% url 'about' %}" class="block py-2 text-gray-700 hover:text-primary transition">About</a>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Main Content -->
+    <main class="min-h-screen">
+        {% block content %}{% endblock %}
+    </main>
+    
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-gray-300 mt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <!-- About -->
+                <div>
+                    <h3 class="text-white font-semibold mb-4">{{ site.display_name|default:"City Directory" }}</h3>
+                    <p class="text-sm">
+                        Comprehensive city guides powered by U.S. Census data and AI-generated content.
+                        Discover demographics, attractions, and local insights.
+                    </p>
+                </div>
+                
+                <!-- Quick Links -->
+                <div>
+                    <h3 class="text-white font-semibold mb-4">Quick Links</h3>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="/cities/" class="hover:text-white transition">Browse Cities</a></li>
+                        <li><a href="/articles/" class="hover:text-white transition">Recent Articles</a></li>
+                        <li><a href="/businesses/" class="hover:text-white transition">Business Directory</a></li>
+                        <li><a href="/about/" class="hover:text-white transition">About Us</a></li>
+                    </ul>
+                </div>
+                
+                <!-- Resources -->
+                <div>
+                    <h3 class="text-white font-semibold mb-4">Resources</h3>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="https://youbetyourazure.com" target="_blank" class="hover:text-white transition">Learn to Build This</a></li>
+                        <li><a href="https://api.census.gov" target="_blank" class="hover:text-white transition">U.S. Census API</a></li>
+                        <li><a href="/privacy/" class="hover:text-white transition">Privacy Policy</a></li>
+                        <li><a href="/terms/" class="hover:text-white transition">Terms of Service</a></li>
+                    </ul>
+                </div>
+                
+                <!-- Contact -->
+                <div>
+                    <h3 class="text-white font-semibold mb-4">Connect</h3>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="mailto:info@cloudandsecurelimited.com" class="hover:text-white transition">Contact Us</a></li>
+                        <li><a href="https://cloudandsecurelimited.com" target="_blank" class="hover:text-white transition">Cloud and Secure Limited</a></li>
+                        <li><a href="https://github.com/cloudandsecurelimited" target="_blank" class="hover:text-white transition">GitHub</a></li>
+                    </ul>
+                    <!-- Microsoft Partner Badge -->
+                    <div class="mt-5">
+                        <a href="https://partner.microsoft.com" target="_blank" rel="noopener" title="Microsoft Partner">
+                            <img src="/static/images/microsoft-partner.png"
+                                 alt="Microsoft Partner"
+                                 class="h-10 w-auto opacity-90 hover:opacity-100 transition"
+                                 onerror="this.style.display='none'">
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 mt-8 pt-8 text-sm text-center">
+                <p>&copy; 2026 {{ site.display_name|default:"City Directory" }}. Built by <a href="https://cloudandsecurelimited.com" class="text-primary hover:text-primary-light transition">Cloud and Secure Limited</a>.</p>
+                <p class="mt-2">Data sourced from U.S. Census Bureau. Content generated with AI assistance.</p>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- JavaScript -->
+    <script>
+        // Mobile Menu Toggle
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+        
+        // High Contrast Toggle
+        const contrastToggle = document.getElementById('contrast-toggle');
+        
+        // Load saved preference
+        if (localStorage.getItem('highContrast') === 'true') {
+            document.body.classList.add('high-contrast');
+        }
+        
+        contrastToggle.addEventListener('click', () => {
+            document.body.classList.toggle('high-contrast');
+            localStorage.setItem('highContrast', document.body.classList.contains('high-contrast'));
+        });
+        
+        // Preview Mode Toggle (Admin Only)
+        const previewToggle = document.getElementById('preview-toggle');
+        
+        if (previewToggle) {
+            // Load saved preference
+            if (localStorage.getItem('previewMode') === 'true') {
+                document.body.classList.add('preview-mode');
+            }
+            
+            previewToggle.addEventListener('click', () => {
+                const isPreviewMode = document.body.classList.toggle('preview-mode');
+                localStorage.setItem('previewMode', isPreviewMode);
+                
+                // Update button text
+                if (isPreviewMode) {
+                    previewToggle.querySelector('span').textContent = 'Exit Preview';
+                } else {
+                    previewToggle.querySelector('span').textContent = 'Preview';
+                }
+            });
+            
+            // Set initial button text
+            if (document.body.classList.contains('preview-mode')) {
+                previewToggle.querySelector('span').textContent = 'Exit Preview';
+            }
+        }
+        
+        // Track article views (Point of Sale tracking!)
+        {% if article %}
+        fetch('/api/article/{{ article.id }}/view/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+            },
+        });
+        {% endif %}
+        // OAuth popup closer: if we loaded inside a social login popup and auth succeeded, close it
+        (function() {
+            var path = window.location.pathname;
+            var isOAuthPage = path.indexOf('/accounts/') === 0;
+            if (window.opener && !window.opener.closed && !isOAuthPage) {
+                window.close();
+            }
+        })();
+    </script>
+    <script>
+    // Social login popup — used on login + signup pages
+    function openSocialPopup(e, url) {
+        e.preventDefault();
+        var w = 500, h = 620;
+        var left = Math.round((screen.width / 2) - (w / 2));
+        var top = Math.round((screen.height / 2) - (h / 2));
+        var popup = window.open(
+            url, 'social_login',
+            'width=' + w + ',height=' + h + ',left=' + left + ',top=' + top +
+            ',toolbar=0,menubar=0,location=0,scrollbars=1,resizable=1'
+        );
+        if (!popup || popup.closed) { window.location.href = url; return; }
+        var timer = setInterval(function() {
+            if (popup.closed) { clearInterval(timer); window.location.reload(); }
+        }, 500);
+    }
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

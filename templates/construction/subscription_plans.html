@@ -1,0 +1,275 @@
+{% extends 'construction/base.html' %}
+{% load humanize %}
+
+{% block title %}STL Analysis Subscription Plans | Missouri Construction{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+  <!-- Hero -->
+  <div class="text-center mb-5">
+    <span class="badge bg-warning text-dark fw-semibold px-3 py-2 mb-3" style="letter-spacing:.05em;">MISSOURI-FIRST DATA</span>
+    <h1 class="display-5 fw-bold mb-3">STL Building Conversion Intelligence</h1>
+    <p class="lead text-muted col-md-8 mx-auto">
+      Downtown St. Louis redevelopment data — TIF subsidies, tax credits, rehab costs, unit economics.
+      Sourced from public records, SLDC filings, and permit databases.
+      The kind of localized analysis you won't find in Dodge Reports.
+    </p>
+  </div>
+
+  <!-- What You Get Banner -->
+  <div class="row g-4 mb-5">
+    <div class="col-md-3 text-center">
+      <div class="display-6 mb-2">🏚️→🏢</div>
+      <div class="fw-semibold">Before &amp; After</div>
+      <div class="small text-muted">Every documented conversion from hotel / office / warehouse to residential</div>
+    </div>
+    <div class="col-md-3 text-center">
+      <div class="display-6 mb-2">💰</div>
+      <div class="fw-semibold">Financial Breakdowns</div>
+      <div class="small text-muted">TIF amounts, historic tax credits, NMTC, rehab costs, unit economics</div>
+    </div>
+    <div class="col-md-3 text-center">
+      <div class="display-6 mb-2">📊</div>
+      <div class="fw-semibold">Power BI Dashboards</div>
+      <div class="small text-muted">Interactive visualizations — crime overlay, walkability, comparable rents</div>
+    </div>
+    <div class="col-md-3 text-center">
+      <div class="display-6 mb-2">🔌</div>
+      <div class="fw-semibold">API Access</div>
+      <div class="small text-muted">Bulk export for developers, university researchers, and city planners</div>
+    </div>
+  </div>
+
+  <!-- Pricing Cards -->
+  <div class="row row-cols-1 row-cols-md-2 row-cols-xl-4 g-4 mb-5 align-items-stretch">
+
+    {% for plan in plans %}
+    <div class="col">
+      <div class="card h-100 border-0 shadow {% if plan.highlight %}border-warning border-2{% endif %} position-relative">
+        {% if plan.highlight %}
+        <div class="position-absolute top-0 start-50 translate-middle">
+          <span class="badge bg-warning text-dark fw-bold px-3 py-2 shadow-sm">MOST POPULAR</span>
+        </div>
+        {% endif %}
+        <div class="card-header {% if plan.is_free %}bg-light text-dark{% else %}bg-dark text-white{% endif %} pt-{% if plan.highlight %}4{% else %}3{% endif %}">
+          <div class="fw-bold fs-5">{{ plan.name }}</div>
+          {% if plan.tagline %}<div class="small opacity-75">{{ plan.tagline }}</div>{% endif %}
+        </div>
+        <div class="card-body d-flex flex-column">
+          <!-- Price -->
+          <div class="my-3 text-center">
+            {% if plan.is_free %}
+            <span class="display-6 fw-bold">Free</span>
+            {% else %}
+            <span class="display-6 fw-bold">${{ plan.price_monthly|floatformat:0 }}</span>
+            <span class="text-muted">/mo</span>
+            {% if plan.price_annual %}
+            <div class="small text-muted mt-1">
+              or ${{ plan.price_annual|floatformat:0 }}/yr
+              <span class="badge bg-success ms-1">
+                Save ${{ plan.price_monthly|floatformat:0|add:"0"|default:"0" }}
+              </span>
+            </div>
+            {% endif %}
+            {% endif %}
+          </div>
+
+          <!-- Feature list -->
+          <ul class="list-unstyled flex-grow-1 mb-4">
+            {% for feature in plan.features_list %}
+            <li class="mb-2 d-flex gap-2 align-items-start">
+              <span class="text-success fw-bold flex-shrink-0">✓</span>
+              <span class="small">{{ feature }}</span>
+            </li>
+            {% endfor %}
+            {% if plan.show_financials %}
+            <li class="mb-2 d-flex gap-2 align-items-start">
+              <span class="text-success fw-bold flex-shrink-0">✓</span>
+              <span class="small">Full financial breakdowns (TIF, tax credits, rehab cost)</span>
+            </li>
+            {% endif %}
+            {% if plan.show_comparables %}
+            <li class="mb-2 d-flex gap-2 align-items-start">
+              <span class="text-success fw-bold flex-shrink-0">✓</span>
+              <span class="small">Comparable sale &amp; rent analysis</span>
+            </li>
+            {% endif %}
+            {% if plan.show_powerbi %}
+            <li class="mb-2 d-flex gap-2 align-items-start">
+              <span class="text-success fw-bold flex-shrink-0">✓</span>
+              <span class="small">Power BI interactive dashboards</span>
+            </li>
+            {% endif %}
+            {% if plan.api_access %}
+            <li class="mb-2 d-flex gap-2 align-items-start">
+              <span class="text-success fw-bold flex-shrink-0">✓</span>
+              <span class="small">REST API access for bulk export</span>
+            </li>
+            {% endif %}
+            {% if plan.custom_reports %}
+            <li class="mb-2 d-flex gap-2 align-items-start">
+              <span class="text-success fw-bold flex-shrink-0">✓</span>
+              <span class="small">Custom on-demand analysis reports</span>
+            </li>
+            {% endif %}
+          </ul>
+
+          <!-- CTA Button -->
+          {% if current_plan == plan.tier %}
+          <button class="btn btn-outline-success fw-bold w-100" disabled>
+            ✓ Current Plan
+          </button>
+          {% elif plan.is_free %}
+          {% if user.is_authenticated %}
+          <a href="{% url 'construction:subscribe_plan' plan.tier %}" class="btn btn-outline-secondary fw-bold w-100">
+            Switch to Free
+          </a>
+          {% else %}
+          <a href="{% url 'account_signup' %}" class="btn btn-outline-dark fw-bold w-100">
+            Get Started Free
+          </a>
+          {% endif %}
+          {% else %}
+          <a href="{% url 'construction:subscribe_plan' plan.tier %}" class="btn {% if plan.highlight %}btn-warning text-dark{% else %}btn-dark{% endif %} fw-bold w-100">
+            Subscribe — ${{ plan.price_monthly|floatformat:0 }}/mo
+          </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <!-- No plans seeded yet — fallback static display -->
+    <div class="col-12 text-center py-5 text-muted">
+      <p>Subscription plans are being finalized. <a href="mailto:gregory.woodruff@cloudandsecurelimited.com">Contact us</a> for early access.</p>
+    </div>
+    {% endfor %}
+
+  </div>
+
+  <!-- Enterprise Row -->
+  <div class="card border-0 bg-dark text-white mb-5">
+    <div class="card-body row align-items-center py-4 px-4 gap-3">
+      <div class="col-md-8">
+        <h4 class="fw-bold mb-1">City Planners, Universities &amp; Development Firms</h4>
+        <p class="mb-0 opacity-75">
+          Custom data licensing, multi-seat access, Power BI workspace integration, and on-site
+          presentations. Used by aldermen, community development corporations, and university
+          urban planning departments. Starting at $499/mo — custom quotes available.
+        </p>
+      </div>
+      <div class="col-md-4 text-md-end">
+        <a href="mailto:gregory.woodruff@cloudandsecurelimited.com?subject=Enterprise STL Data Inquiry"
+           class="btn btn-warning btn-lg fw-bold">
+          Contact for Enterprise Access
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Social Proof / Context -->
+  <div class="row g-4 mb-5">
+    <div class="col-md-6">
+      <div class="card border-0 bg-light h-100">
+        <div class="card-body">
+          <h5 class="fw-bold mb-3">Why Missouri-First?</h5>
+          <p class="small text-muted mb-2">
+            National platforms like Dodge Reports don't favor St. Louis. We do.
+            Every conversion mapped here was documented from SLDC filings, city permit records,
+            assessor databases, and STLToday archives by someone who was physically on these
+            job sites when they were under construction.
+          </p>
+          <p class="small text-muted mb-0">
+            Our coverage extends to Springfield, Columbia, Cape Girardeau, and
+            other Missouri metro areas — with St. Louis downtown as the anchor dataset.
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card border-0 bg-light h-100">
+        <div class="card-body">
+          <h5 class="fw-bold mb-3">How the Data is Built</h5>
+          <ul class="small text-muted mb-0 ps-3">
+            <li class="mb-1">St. Louis Development Corporation (SLDC) public records</li>
+            <li class="mb-1">City of St. Louis Assessor database (assessed value before/after)</li>
+            <li class="mb-1">Building permits via Accela / city permit portal</li>
+            <li class="mb-1">Historic tax credit filings (Missouri DHSS + Federal NPS records)</li>
+            <li class="mb-1">New Markets Tax Credit CDFI Fund public disclosures</li>
+            <li class="mb-1">STLToday archives and press release / news sources</li>
+            <li>On-site photography archive (1990s–present) by Gregory Woodruff</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FAQ -->
+  <h4 class="fw-bold mb-3">Frequently Asked Questions</h4>
+  <div class="accordion mb-5" id="faqAccordion">
+    <div class="accordion-item border-0 mb-2 shadow-sm">
+      <h2 class="accordion-header">
+        <button class="accordion-button collapsed fw-semibold" type="button"
+                data-bs-toggle="collapse" data-bs-target="#faq1">
+          Can I cancel anytime?
+        </button>
+      </h2>
+      <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+        <div class="accordion-body text-muted">
+          Yes. Cancel anytime from your account dashboard. You keep access until the end of your paid period.
+        </div>
+      </div>
+    </div>
+    <div class="accordion-item border-0 mb-2 shadow-sm">
+      <h2 class="accordion-header">
+        <button class="accordion-button collapsed fw-semibold" type="button"
+                data-bs-toggle="collapse" data-bs-target="#faq2">
+          How often is the data updated?
+        </button>
+      </h2>
+      <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+        <div class="accordion-body text-muted">
+          Active conversions are refreshed monthly. Completed projects are updated when new public records become available. Enterprise subscribers can request priority updates.
+        </div>
+      </div>
+    </div>
+    <div class="accordion-item border-0 mb-2 shadow-sm">
+      <h2 class="accordion-header">
+        <button class="accordion-button collapsed fw-semibold" type="button"
+                data-bs-toggle="collapse" data-bs-target="#faq3">
+          Do you cover Kansas City?
+        </button>
+      </h2>
+      <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+        <div class="accordion-body text-muted">
+          St. Louis is our primary focus. We cover all major Missouri cities (Springfield, Columbia, Cape Girardeau, Jefferson City, Joplin) but the KC metro dataset is limited. We'll expand coverage based on subscriber demand.
+        </div>
+      </div>
+    </div>
+    <div class="accordion-item border-0 shadow-sm">
+      <h2 class="accordion-header">
+        <button class="accordion-button collapsed fw-semibold" type="button"
+                data-bs-toggle="collapse" data-bs-target="#faq4">
+          Can I request a specific building or project?
+        </button>
+      </h2>
+      <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+        <div class="accordion-body text-muted">
+          Yes — Professional and Enterprise subscribers can submit custom analysis requests. We'll research and publish within 5 business days for standard requests.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom CTA -->
+  <div class="text-center py-4">
+    <h4 class="fw-bold mb-2">Start free. Upgrade when you need the numbers.</h4>
+    <p class="text-muted mb-4">No credit card required for Scout tier.</p>
+    <a href="{% url 'account_signup' %}" class="btn btn-dark btn-lg fw-bold px-5">Create Free Account</a>
+    <p class="small text-muted mt-3">
+      Questions? <a href="mailto:gregory.woodruff@cloudandsecurelimited.com">gregory.woodruff@cloudandsecurelimited.com</a>
+    </p>
+  </div>
+
+</div>
+{% endblock %}

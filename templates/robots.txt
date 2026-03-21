@@ -1,0 +1,26 @@
+User-agent: *
+
+# Auth & account pages — no value for crawlers
+Disallow: /login/
+Disallow: /logout/
+Disallow: /signup/
+Disallow: /business/signup/
+Disallow: /profile/
+Disallow: /profile/edit/
+Disallow: /verify-email/
+Disallow: /resend-verification/
+Disallow: /password-reset/
+Disallow: /password-reset/done/
+Disallow: /password-reset-confirm/
+Disallow: /password-reset-complete/
+
+# OAuth / social auth
+Disallow: /accounts/
+
+# Admin
+Disallow: /admin/
+
+# Allow everything else (city pages, news, hotels, calendar, etc.)
+Allow: /
+
+Sitemap: https://seekingspringfield.com/sitemap.xml

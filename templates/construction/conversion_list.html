@@ -1,0 +1,196 @@
+{% extends 'construction/base.html' %}
+{% load humanize %}
+
+{% block title %}STL Building Conversions — Downtown St. Louis Analysis | Missouri Construction{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+  <!-- Page Header -->
+  <div class="row mb-4">
+    <div class="col-lg-8">
+      <h1 class="fw-bold mb-2">St. Louis Building Conversion Analysis</h1>
+      <p class="lead text-muted">
+        The real story behind downtown St. Louis's transformation — every hotel, warehouse, and
+        office tower reimagined as residential. Purchase prices, rehab costs, TIF subsidies,
+        and monthly carry: all in one place.
+      </p>
+      {% if stats.total_buildings %}
+      <div class="d-flex gap-4 mt-3">
+        <div>
+          <span class="fs-2 fw-bold text-primary">{{ stats.total_buildings }}</span>
+          <div class="small text-muted">Buildings Tracked</div>
+        </div>
+        {% if stats.total_units %}
+        <div>
+          <span class="fs-2 fw-bold text-success">{{ stats.total_units|intcomma }}</span>
+          <div class="small text-muted">New Residential Units</div>
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+    <div class="col-lg-4 d-flex align-items-start justify-content-lg-end mt-3 mt-lg-0">
+      <a href="mailto:gregory.woodruff@cloudandsecurelimited.com?subject=STL Conversion Analysis Inquiry"
+         class="btn btn-warning fw-bold px-4">
+        Request Full Analysis <span class="ms-1">→</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="card border-0 bg-light mb-4">
+    <div class="card-body py-3">
+      <form method="get" class="row g-2 align-items-end">
+        <div class="col-sm-4 col-md-3">
+          <label class="form-label small fw-semibold mb-1">Neighborhood</label>
+          <select name="neighborhood" class="form-select form-select-sm">
+            <option value="">All Neighborhoods</option>
+            {% for nbhd in neighborhoods %}
+            <option value="{{ nbhd.slug }}"
+              {% if active_filters.neighborhood == nbhd.slug %}selected{% endif %}>
+              {{ nbhd.name }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-sm-4 col-md-3">
+          <label class="form-label small fw-semibold mb-1">Original Building Type</label>
+          <select name="type" class="form-select form-select-sm">
+            <option value="">All Types</option>
+            {% for val, label in building_types %}
+            <option value="{{ val }}"
+              {% if active_filters.type == val %}selected{% endif %}>
+              {{ label }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-sm-4 col-md-3">
+          <label class="form-label small fw-semibold mb-1">Status</label>
+          <select name="status" class="form-select form-select-sm">
+            <option value="">All Statuses</option>
+            {% for val, label in status_choices %}
+            <option value="{{ val }}"
+              {% if active_filters.status == val %}selected{% endif %}>
+              {{ label }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-sm-12 col-md-3 d-flex gap-2">
+          <button type="submit" class="btn btn-primary btn-sm px-4">Filter</button>
+          <a href="{% url 'construction:conversion_list' %}" class="btn btn-outline-secondary btn-sm">Clear</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Results -->
+  {% if conversions %}
+  <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
+    {% for c in conversions %}
+    <div class="col">
+      <div class="card h-100 border-0 shadow-sm">
+        {% if c.cover_image_url %}
+        <img src="{{ c.cover_image_url }}" class="card-img-top" style="height:180px;object-fit:cover;"
+             alt="{{ c.name }}">
+        {% else %}
+        <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center"
+             style="height:180px;">
+          <span class="text-white opacity-50 fs-1">🏗</span>
+        </div>
+        {% endif %}
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <span class="badge bg-secondary">{{ c.get_original_building_type_display }}</span>
+            <span class="badge {% if c.status == 'completed' %}bg-success{% elif c.status == 'in_progress' %}bg-warning text-dark{% else %}bg-light text-dark{% endif %}">
+              {{ c.get_status_display }}
+            </span>
+          </div>
+          <h5 class="card-title fw-bold mb-1">
+            <a href="{% url 'construction:conversion_detail' c.slug %}" class="text-decoration-none text-dark stretched-link">
+              {{ c.original_name|default:c.name }}
+            </a>
+          </h5>
+          {% if c.current_name and c.current_name != c.original_name %}
+          <div class="small text-muted mb-2">Now: {{ c.current_name }}</div>
+          {% endif %}
+          <div class="small text-muted mb-3">
+            {% if c.neighborhood %}<span>📍 {{ c.neighborhood.name }}</span>{% endif %}
+            {% if c.address %}<br>{{ c.address }}{% endif %}
+          </div>
+
+          <!-- Key Numbers -->
+          <div class="row g-2 text-center border-top pt-3">
+            <div class="col-4">
+              <div class="fw-bold">{{ c.original_units|default:"—" }}</div>
+              <div class="tiny text-muted" style="font-size:.7rem;">{{ c.original_unit_label }}</div>
+            </div>
+            <div class="col-4">
+              <div class="fw-bold text-primary">{{ c.residential_units|default:"—" }}</div>
+              <div class="tiny text-muted" style="font-size:.7rem;">new units</div>
+            </div>
+            <div class="col-4">
+              <div class="fw-bold">{{ c.completion_year|default:"—" }}</div>
+              <div class="tiny text-muted" style="font-size:.7rem;">completed</div>
+            </div>
+          </div>
+
+          {% if c.financials %}
+          <div class="border-top mt-3 pt-2">
+            {% if c.financials.total_project_cost %}
+            <div class="d-flex justify-content-between small">
+              <span class="text-muted">Total Project Cost</span>
+              <span class="fw-semibold">${{ c.financials.total_project_cost|intcomma }}</span>
+            </div>
+            {% endif %}
+            {% if c.financials.avg_rent_monthly %}
+            <div class="d-flex justify-content-between small">
+              <span class="text-muted">Avg Rent / Mo</span>
+              <span class="fw-semibold">${{ c.financials.avg_rent_monthly|intcomma }}</span>
+            </div>
+            {% endif %}
+            {% if c.financials.tif_amount %}
+            <div class="d-flex justify-content-between small">
+              <span class="text-muted">TIF Subsidy</span>
+              <span class="fw-semibold text-warning">${{ c.financials.tif_amount|intcomma }}</span>
+            </div>
+            {% endif %}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <div class="text-center py-5 text-muted">
+    <div class="fs-1 mb-3">🔍</div>
+    <p>No conversions match your current filters. <a href="{% url 'construction:conversion_list' %}">Clear filters</a></p>
+  </div>
+  {% endif %}
+
+  <!-- CTA Bar -->
+  <div class="card border-0 bg-dark text-white mt-5">
+    <div class="card-body py-4 px-5">
+      <div class="row align-items-center">
+        <div class="col-lg-8">
+          <h4 class="fw-bold mb-1">Need a custom analysis for your building or portfolio?</h4>
+          <p class="mb-0 opacity-75">
+            Cloud and Secure Limited provides ETL data pipelines, Power BI dashboards, and full
+            financial modeling for St. Louis real estate — rooted in public records, assessor data,
+            and TIF filings. Starting at $250/hr.
+          </p>
+        </div>
+        <div class="col-lg-4 mt-3 mt-lg-0 text-lg-end">
+          <a href="mailto:gregory.woodruff@cloudandsecurelimited.com?subject=STL Conversion Analysis Request"
+             class="btn btn-warning fw-bold px-4">Get Started →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- Background -->
+  <rect width="1024" height="1024" fill="#111827" rx="80"/>
+
+  <!-- Yellow accent bar at top -->
+  <rect x="0" y="0" width="1024" height="12" fill="#FBBF24" rx="80"/>
+  <rect x="0" y="0" width="1024" height="12" fill="#FBBF24"/>
+
+  <!-- Hard hat silhouette -->
+  <ellipse cx="512" cy="400" rx="220" ry="30" fill="#FBBF24"/>
+  <path d="M292 400 Q292 290 512 270 Q732 290 732 400 Z" fill="#FBBF24"/>
+  <rect x="272" y="400" width="480" height="36" rx="18" fill="#F59E0B"/>
+
+  <!-- Beam / I-beam horizontal -->
+  <rect x="180" y="570" width="664" height="28" rx="6" fill="#D1D5DB"/>
+  <!-- I-beam top flange -->
+  <rect x="180" y="558" width="664" height="14" rx="4" fill="#9CA3AF"/>
+  <!-- I-beam bottom flange -->
+  <rect x="180" y="584" width="664" height="14" rx="4" fill="#9CA3AF"/>
+
+  <!-- Left vertical column -->
+  <rect x="260" y="480" width="36" height="320" rx="6" fill="#6B7280"/>
+  <rect x="248" y="480" width="60" height="16" rx="4" fill="#9CA3AF"/>
+  <rect x="248" y="784" width="60" height="16" rx="4" fill="#9CA3AF"/>
+
+  <!-- Right vertical column -->
+  <rect x="728" y="480" width="36" height="320" rx="6" fill="#6B7280"/>
+  <rect x="716" y="480" width="60" height="16" rx="4" fill="#9CA3AF"/>
+  <rect x="716" y="784" width="60" height="16" rx="4" fill="#9CA3AF"/>
+
+  <!-- "MC" monogram -->
+  <text x="512" y="730" font-family="Arial Black, sans-serif" font-size="120" font-weight="900"
+        text-anchor="middle" fill="#FBBF24" letter-spacing="-4">MC</text>
+
+  <!-- Missouri star (small) -->
+  <text x="512" y="810" font-family="Arial, sans-serif" font-size="28"
+        text-anchor="middle" fill="#9CA3AF" letter-spacing="6">MISSOURI</text>
+
+  <!-- Bottom accent line -->
+  <rect x="0" y="1012" width="1024" height="12" fill="#FBBF24"/>
+</svg>

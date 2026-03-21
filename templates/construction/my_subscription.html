@@ -1,0 +1,119 @@
+{% extends 'construction/base.html' %}
+{% load humanize %}
+
+{% block title %}My Subscription | Missouri Construction{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width:700px;">
+
+  <h2 class="fw-bold mb-1">My Subscription</h2>
+  <p class="text-muted mb-4">Manage your STL Conversion Analysis access.</p>
+
+  {% if messages %}
+  {% for message in messages %}
+  <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'success' %}success{% else %}info{% endif %} alert-dismissible" role="alert">
+    {{ message }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  {% endfor %}
+  {% endif %}
+
+  {% if subscription and subscription.is_active %}
+  <!-- Active subscription card -->
+  <div class="card border-0 shadow mb-4">
+    <div class="card-header bg-dark text-white d-flex align-items-center justify-content-between">
+      <span class="fw-bold fs-5">{{ subscription.plan.name }}</span>
+      <span class="badge {% if subscription.status == 'active' %}bg-success{% elif subscription.status == 'trialing' %}bg-info{% else %}bg-warning text-dark{% endif %}">
+        {{ subscription.get_status_display }}
+      </span>
+    </div>
+    <div class="card-body">
+      <dl class="row mb-0">
+        <dt class="col-sm-5">Plan</dt>
+        <dd class="col-sm-7">{{ subscription.plan.name }} — {% if subscription.plan.is_free %}Free{% else %}${{ subscription.plan.price_monthly|floatformat:0 }}/{{ subscription.interval }}{% endif %}</dd>
+
+        <dt class="col-sm-5">Billing</dt>
+        <dd class="col-sm-7">{{ subscription.get_interval_display }}</dd>
+
+        {% if subscription.current_period_end %}
+        <dt class="col-sm-5">
+          {% if subscription.cancelled_at %}Expires{% else %}Next Renewal{% endif %}
+        </dt>
+        <dd class="col-sm-7">{{ subscription.current_period_end|date:"N j, Y" }}</dd>
+        {% endif %}
+      </dl>
+    </div>
+  </div>
+
+  <!-- Feature access summary -->
+  <div class="card border-0 bg-light mb-4">
+    <div class="card-body">
+      <h6 class="fw-bold mb-3">Your Access</h6>
+      <ul class="list-unstyled mb-0">
+        <li class="mb-2">
+          <span class="text-success fw-bold me-2">✓</span> Building conversion list &amp; details (all published buildings)
+        </li>
+        {% if subscription.plan.show_financials %}
+        <li class="mb-2">
+          <span class="text-success fw-bold me-2">✓</span> Full financial breakdowns — TIF, tax credits, rehab costs, unit economics
+        </li>
+        {% else %}
+        <li class="mb-2 text-muted">
+          <span class="me-2">🔒</span> Financial breakdowns — <a href="{% url 'construction:subscription_plans' %}">upgrade to Analyst</a>
+        </li>
+        {% endif %}
+        {% if subscription.plan.show_comparables %}
+        <li class="mb-2">
+          <span class="text-success fw-bold me-2">✓</span> Comparable sale &amp; rent analysis
+        </li>
+        {% else %}
+        <li class="mb-2 text-muted">
+          <span class="me-2">🔒</span> Comparable analysis — <a href="{% url 'construction:subscription_plans' %}">upgrade to Professional</a>
+        </li>
+        {% endif %}
+        {% if subscription.plan.show_powerbi %}
+        <li class="mb-2">
+          <span class="text-success fw-bold me-2">✓</span> Power BI interactive dashboards
+        </li>
+        {% endif %}
+        {% if subscription.plan.api_access %}
+        <li class="mb-2">
+          <span class="text-success fw-bold me-2">✓</span> REST API bulk export
+        </li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+
+  {% if not subscription.plan.is_free %}
+  <div class="d-flex gap-3">
+    <a href="{% url 'construction:subscription_plans' %}" class="btn btn-outline-dark btn-sm">Change Plan</a>
+    <button class="btn btn-outline-danger btn-sm" disabled title="Cancellation via Stripe portal — coming soon">
+      Cancel Subscription
+    </button>
+  </div>
+  {% else %}
+  <div class="alert alert-info border-0">
+    <strong>You're on the free Scout plan.</strong>
+    <a href="{% url 'construction:subscription_plans' %}" class="fw-bold ms-2">Upgrade to unlock financial data →</a>
+  </div>
+  {% endif %}
+
+  {% else %}
+  <!-- No subscription -->
+  <div class="card border-0 shadow-sm text-center py-5">
+    <div class="card-body">
+      <div class="display-6 mb-3">📊</div>
+      <h5 class="fw-bold mb-2">You don't have an active subscription</h5>
+      <p class="text-muted mb-4">Subscribe to unlock financial breakdowns, TIF data, and Power BI dashboards for St. Louis building conversions.</p>
+      <a href="{% url 'construction:subscription_plans' %}" class="btn btn-dark fw-bold px-4">View Plans</a>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="mt-4 small text-muted text-center">
+    Questions? <a href="mailto:gregory.woodruff@cloudandsecurelimited.com">gregory.woodruff@cloudandsecurelimited.com</a>
+  </div>
+
+</div>
+{% endblock %}

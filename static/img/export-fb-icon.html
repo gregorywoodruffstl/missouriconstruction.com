@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Export FB Icon 1024x1024</title>
+<style>
+  body { background: #333; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; font-family: Arial, sans-serif; gap: 20px; }
+  canvas { display: block; }
+  button { background: #FBBF24; color: #111; font-weight: bold; font-size: 18px; padding: 14px 32px; border: none; border-radius: 8px; cursor: pointer; }
+  button:hover { background: #F59E0B; }
+  p { color: #ccc; font-size: 14px; margin: 0; }
+</style>
+</head>
+<body>
+
+<p>Missouri Construction — Facebook App Icon (1024×1024)</p>
+
+<canvas id="canvas" width="1024" height="1024"></canvas>
+
+<button onclick="downloadPNG()">Download fb-app-icon.png</button>
+
+<p>Upload the downloaded PNG to the Facebook Developer App icon field.</p>
+
+<script>
+const svgString = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <rect width="1024" height="1024" fill="#111827" rx="80"/>
+  <rect x="0" y="0" width="1024" height="12" fill="#FBBF24"/>
+  <ellipse cx="512" cy="400" rx="220" ry="30" fill="#FBBF24"/>
+  <path d="M292 400 Q292 290 512 270 Q732 290 732 400 Z" fill="#FBBF24"/>
+  <rect x="272" y="400" width="480" height="36" rx="18" fill="#F59E0B"/>
+  <rect x="180" y="570" width="664" height="28" rx="6" fill="#D1D5DB"/>
+  <rect x="180" y="558" width="664" height="14" rx="4" fill="#9CA3AF"/>
+  <rect x="180" y="584" width="664" height="14" rx="4" fill="#9CA3AF"/>
+  <rect x="260" y="480" width="36" height="320" rx="6" fill="#6B7280"/>
+  <rect x="248" y="480" width="60" height="16" rx="4" fill="#9CA3AF"/>
+  <rect x="248" y="784" width="60" height="16" rx="4" fill="#9CA3AF"/>
+  <rect x="728" y="480" width="36" height="320" rx="6" fill="#6B7280"/>
+  <rect x="716" y="480" width="60" height="16" rx="4" fill="#9CA3AF"/>
+  <rect x="716" y="784" width="60" height="16" rx="4" fill="#9CA3AF"/>
+  <text x="512" y="730" font-family="Arial Black, sans-serif" font-size="120" font-weight="900" text-anchor="middle" fill="#FBBF24" letter-spacing="-4">MC</text>
+  <text x="512" y="810" font-family="Arial, sans-serif" font-size="28" text-anchor="middle" fill="#9CA3AF" letter-spacing="6">MISSOURI</text>
+  <rect x="0" y="1012" width="1024" height="12" fill="#FBBF24"/>
+</svg>`;
+
+const img = new Image();
+const blob = new Blob([svgString], {type: 'image/svg+xml'});
+const url = URL.createObjectURL(blob);
+img.onload = function() {
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(img, 0, 0, 1024, 1024);
+  URL.revokeObjectURL(url);
+};
+img.src = url;
+
+function downloadPNG() {
+  const canvas = document.getElementById('canvas');
+  const link = document.createElement('a');
+  link.download = 'fb-app-icon.png';
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,174 @@
+{% extends 'construction/base.html' %}
+{% load humanize %}
+
+{% block title %}Missouri Construction — Building Missouri for Generations{% endblock %}
+
+{% block content %}
+
+<!-- Hero -->
+<section class="bg-gray-900 text-white py-20 px-4 relative overflow-hidden">
+    <div class="absolute inset-0 opacity-10" style="background-image: repeating-linear-gradient(45deg, #fbbf24 0, #fbbf24 1px, transparent 0, transparent 50%); background-size: 20px 20px;"></div>
+    <div class="max-w-4xl mx-auto text-center relative">
+        <p class="text-yellow-400 font-semibold tracking-widest text-sm uppercase mb-3">Missouri &mdash; Built to Last</p>
+        <h1 class="text-4xl md:text-6xl font-bold mb-6 leading-tight">
+            Missouri<br><span class="text-yellow-400">Construction</span>
+        </h1>
+        <p class="text-gray-300 text-xl mb-8 max-w-2xl mx-auto">
+            Three years documenting the construction of Busch Stadium III. Now covering bids, permits, and projects shaping Missouri from St. Louis to Springfield.
+        </p>
+        <div class="flex flex-wrap gap-4 justify-center">
+            <a href="{% url 'construction:gallery' %}" class="bg-yellow-400 text-gray-900 font-bold px-8 py-3 rounded hover:bg-yellow-300 transition">
+                View Busch Stadium Gallery
+            </a>
+            <a href="{% url 'construction:project_list' %}" class="border border-gray-500 text-white px-8 py-3 rounded hover:border-yellow-400 hover:text-yellow-400 transition">
+                Browse Projects
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Busch Stadium III Feature -->
+{% if busch_stadium %}
+<section class="bg-yellow-50 border-b border-yellow-200 py-12 px-4">
+    <div class="max-w-6xl mx-auto">
+        <div class="flex flex-col md:flex-row items-center gap-8">
+            <div class="flex-1">
+                <span class="text-yellow-600 text-sm font-bold uppercase tracking-wider">Featured Project</span>
+                <h2 class="text-3xl font-bold mt-2 mb-4">{{ busch_stadium.title }}</h2>
+                <p class="text-gray-600 mb-6">{{ busch_stadium.description|truncatewords:60 }}</p>
+                <div class="flex gap-4 text-sm text-gray-500 mb-6">
+                    <span><strong>Location:</strong> {{ busch_stadium.location }}, {{ busch_stadium.city }}, {{ busch_stadium.state }}</span>
+                    {% if busch_stadium.image_count %}
+                    <span><strong>Photos:</strong> {{ busch_stadium.image_count }}</span>
+                    {% endif %}
+                </div>
+                <a href="{% url 'construction:gallery' %}" class="bg-gray-900 text-white font-bold px-6 py-3 rounded hover:bg-gray-700 transition">
+                    Explore the Gallery &rarr;
+                </a>
+            </div>
+            {% if busch_stadium.cover_image %}
+            <div class="flex-1">
+                <img src="{{ busch_stadium.cover_image.url }}" alt="{{ busch_stadium.title }}" class="rounded-lg shadow-xl w-full object-cover max-h-80">
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Featured Projects -->
+{% if featured_projects %}
+<section class="py-14 px-4">
+    <div class="max-w-6xl mx-auto">
+        <h2 class="text-3xl font-bold mb-2">Featured Projects</h2>
+        <p class="text-gray-500 mb-8">Major construction projects across Missouri</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for project in featured_projects %}
+            <a href="{{ project.get_absolute_url }}" class="group bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition">
+                {% if project.cover_image %}
+                <img src="{{ project.cover_image.url }}" alt="{{ project.title }}" class="w-full h-48 object-cover group-hover:scale-105 transition duration-300">
+                {% else %}
+                <div class="w-full h-48 bg-gray-200 flex items-center justify-center">
+                    <span class="text-gray-400 text-4xl">&#x2692;</span>
+                </div>
+                {% endif %}
+                <div class="p-4">
+                    <span class="text-xs font-bold uppercase tracking-wider {% if project.status == 'active' %}text-green-600{% elif project.status == 'completed' %}text-blue-600{% else %}text-yellow-600{% endif %}">
+                        {{ project.get_status_display }}
+                    </span>
+                    <h3 class="font-bold text-lg mt-1 mb-1 group-hover:text-yellow-600 transition">{{ project.title }}</h3>
+                    <p class="text-sm text-gray-500">{{ project.city }}, {{ project.state }}</p>
+                    {% if project.image_count %}
+                    <p class="text-xs text-gray-400 mt-2">{{ project.image_count }} photo{{ project.image_count|pluralize }}</p>
+                    {% endif %}
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        <div class="text-center mt-8">
+            <a href="{% url 'construction:project_list' %}" class="text-yellow-600 font-semibold hover:underline">View All Projects &rarr;</a>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Bids & Permits split -->
+<section class="bg-gray-100 py-14 px-4">
+    <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-10">
+
+        <!-- Active Bids -->
+        <div>
+            <h2 class="text-2xl font-bold mb-2">Open Bid Opportunities</h2>
+            <p class="text-gray-500 text-sm mb-6">Active bids seeking contractors in Missouri</p>
+            {% if active_bids %}
+            <div class="space-y-4">
+                {% for bid in active_bids %}
+                <div class="bg-white rounded-lg p-4 shadow-sm border-l-4 border-yellow-400">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 class="font-semibold text-base">{{ bid.title }}</h3>
+                            <p class="text-sm text-gray-500">{{ bid.agency }}{% if bid.city %} &mdash; {{ bid.city }}, {{ bid.state }}{% endif %}</p>
+                        </div>
+                        {% if bid.due_date %}
+                        <span class="text-xs text-red-600 font-bold whitespace-nowrap ml-3">Due: {{ bid.due_date|date:"M j" }}</span>
+                        {% endif %}
+                    </div>
+                    {% if bid.estimated_value %}
+                    <p class="text-xs text-gray-400 mt-1">Est. value: ${{ bid.estimated_value|intcomma }}</p>
+                    {% endif %}
+                    {% if bid.external_url %}
+                    <a href="{{ bid.external_url }}" target="_blank" rel="noopener" class="text-xs text-yellow-600 hover:underline mt-2 block">View Bid Documents &rarr;</a>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            <a href="{% url 'construction:bids_list' %}" class="inline-block mt-5 text-yellow-600 font-semibold hover:underline">All Bid Opportunities &rarr;</a>
+            {% else %}
+            <div class="bg-white rounded-lg p-6 text-center text-gray-400 shadow-sm">
+                <p>No open bids at this time. Check back soon.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Recent Permits -->
+        <div>
+            <h2 class="text-2xl font-bold mb-2">Recent Permit Records</h2>
+            <p class="text-gray-500 text-sm mb-6">Public building permits across Missouri</p>
+            {% if recent_permits %}
+            <div class="space-y-3">
+                {% for permit in recent_permits %}
+                <div class="bg-white rounded-lg p-3 shadow-sm flex justify-between items-start">
+                    <div>
+                        <p class="font-semibold text-sm">{{ permit.address }}</p>
+                        <p class="text-xs text-gray-500">{{ permit.permit_type }} &mdash; {{ permit.city }}, {{ permit.state }}</p>
+                        {% if permit.contractor %}<p class="text-xs text-gray-400">{{ permit.contractor }}</p>{% endif %}
+                    </div>
+                    <div class="text-right ml-3 whitespace-nowrap">
+                        <p class="text-xs text-gray-500">{{ permit.issued_date|date:"M j, Y"|default:"" }}</p>
+                        {% if permit.estimated_value %}<p class="text-xs text-gray-400">${{ permit.estimated_value|intcomma }}</p>{% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <a href="{% url 'construction:permits_list' %}" class="inline-block mt-5 text-yellow-600 font-semibold hover:underline">All Permit Records &rarr;</a>
+            {% else %}
+            <div class="bg-white rounded-lg p-6 text-center text-gray-400 shadow-sm">
+                <p>Permit records coming soon.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<!-- About teaser -->
+<section class="py-14 px-4 text-center">
+    <div class="max-w-2xl mx-auto">
+        <h2 class="text-3xl font-bold mb-4">About Missouri Construction</h2>
+        <p class="text-gray-600 text-lg mb-6">
+            Founded on three years of personal documentation — from the first steel beams of Busch Stadium III to completion. Our mission is to make Missouri's construction activity transparent, searchable, and accessible to contractors, citizens, and researchers.
+        </p>
+        <a href="{% url 'construction:about' %}" class="text-yellow-600 font-semibold hover:underline">Our Story &rarr;</a>
+    </div>
+</section>
+
+{% endblock %}

@@ -1,0 +1,81 @@
+{% extends 'construction/base.html' %}
+{% load humanize %}
+
+{% block title %}Bid Opportunities | Missouri Construction{% endblock %}
+
+{% block content %}
+
+<div class="bg-gray-900 text-white py-10 px-4">
+    <div class="max-w-5xl mx-auto">
+        <h1 class="text-4xl font-bold mb-2">Bid Opportunities</h1>
+        <p class="text-gray-300">Active construction bids and RFPs across Missouri — state, federal, and municipal projects.</p>
+    </div>
+</div>
+
+<section class="py-10 px-4 bg-gray-50 min-h-screen">
+    <div class="max-w-5xl mx-auto">
+
+        <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
+            <span class="inline-block w-3 h-3 bg-green-500 rounded-full"></span>
+            Open Bids ({{ open_bids|length }})
+        </h2>
+
+        {% if open_bids %}
+        <div class="space-y-4 mb-12">
+            {% for bid in open_bids %}
+            <div class="bg-white rounded-lg shadow-md p-5 border-l-4 border-yellow-400">
+                <div class="flex flex-wrap justify-between items-start gap-4">
+                    <div class="flex-1">
+                        <h3 class="font-bold text-lg">{{ bid.title }}</h3>
+                        <p class="text-sm text-gray-500 mt-1">{{ bid.agency }}{% if bid.city %} &mdash; {{ bid.city }}, {{ bid.state }}{% endif %}</p>
+                        {% if bid.bid_number %}<p class="text-xs text-gray-400 mt-1">Bid #{{ bid.bid_number }}</p>{% endif %}
+                        <p class="text-gray-700 mt-3 text-sm">{{ bid.description|truncatewords:50 }}</p>
+                        <div class="flex flex-wrap gap-4 mt-3 text-xs text-gray-500">
+                            {% if bid.estimated_value %}<span>Est. Value: <strong>${{ bid.estimated_value|intcomma }}</strong></span>{% endif %}
+                            {% if bid.contact_name %}<span>Contact: {{ bid.contact_name }}</span>{% endif %}
+                            {% if bid.contact_email %}<a href="mailto:{{ bid.contact_email }}" class="text-yellow-600 hover:underline">{{ bid.contact_email }}</a>{% endif %}
+                        </div>
+                        {% if bid.external_url %}
+                        <a href="{{ bid.external_url }}" target="_blank" rel="noopener" class="inline-block mt-3 bg-yellow-400 text-gray-900 font-bold text-xs px-4 py-2 rounded hover:bg-yellow-300 transition">
+                            View Bid Documents &rarr;
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% if bid.due_date %}
+                    <div class="text-center bg-red-50 border border-red-200 rounded-lg p-3 min-w-[80px]">
+                        <p class="text-xs text-red-500 font-bold uppercase">Due</p>
+                        <p class="text-2xl font-bold text-red-600">{{ bid.due_date|date:"j" }}</p>
+                        <p class="text-xs text-red-500">{{ bid.due_date|date:"M Y" }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="bg-white rounded-lg p-10 text-center text-gray-400 shadow-sm mb-12">
+            <p class="text-xl">No open bids at this time.</p>
+            <p class="text-sm mt-2">Check back regularly — Missouri state and municipal bids are updated frequently.</p>
+        </div>
+        {% endif %}
+
+        <!-- Closed / Awarded -->
+        {% if closed_bids %}
+        <h2 class="text-xl font-bold mb-4 text-gray-500">Recently Closed & Awarded</h2>
+        <div class="space-y-2">
+            {% for bid in closed_bids %}
+            <div class="bg-white rounded-lg p-4 shadow-sm opacity-75 flex justify-between items-center">
+                <div>
+                    <h3 class="font-semibold text-sm">{{ bid.title }}</h3>
+                    <p class="text-xs text-gray-400">{{ bid.agency }}{% if bid.city %} &mdash; {{ bid.city }}{% endif %}</p>
+                </div>
+                <span class="text-xs font-bold px-2 py-1 rounded {% if bid.status == 'awarded' %}bg-blue-100 text-blue-600{% else %}bg-gray-100 text-gray-500{% endif %}">
+                    {{ bid.get_status_display }}
+                </span>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

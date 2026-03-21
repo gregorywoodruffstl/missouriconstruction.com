@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Missouri Construction{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}Missouri Construction — documenting the projects, bids, and permits shaping Missouri.{% endblock %}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .nav-link { @apply text-gray-300 hover:text-white transition-colors duration-200; }
+        body { font-family: 'Georgia', serif; }
+        /* High Contrast Mode */
+        @media (prefers-contrast: more) { body { background-color: #000; color: #FFF; } }
+        body.high-contrast { background-color: #000 !important; color: #FFF !important; }
+        body.high-contrast a { color: #FFD700 !important; text-decoration: underline; }
+        body.high-contrast .bg-gray-50 { background-color: #111 !important; }
+        body.high-contrast .bg-gray-900 { background-color: #0a0a0a !important; }
+        body.high-contrast .bg-gray-800 { background-color: #161616 !important; }
+        body.high-contrast .text-gray-900 { color: #FFF !important; }
+        body.high-contrast .text-gray-700 { color: #EEE !important; }
+        body.high-contrast .text-gray-400 { color: #AAA !important; }
+        body.high-contrast .text-gray-300 { color: #CCC !important; }
+        body.high-contrast .bg-white { background-color: #1a1a1a !important; }
+        body.high-contrast .border-gray-700 { border-color: #444 !important; }
+    </style>
+    {% block extra_head %}{% endblock %}
+    <!-- Google Analytics 4 -->
+    {% if ga_measurement_id %}
+    <script async src="https://www.googletagmanager.com/gtag/js?id={{ ga_measurement_id }}"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', '{{ ga_measurement_id }}');
+    </script>
+    {% endif %}
+</head>
+<body class="bg-gray-50 text-gray-900">
+
+    <!-- Navigation -->
+    <nav class="bg-gray-900 text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center space-x-3">
+                    <a href="{% url 'construction:home' %}" class="flex items-center space-x-2">
+                        <span class="text-yellow-400 text-2xl font-bold">&#x2692;</span>
+                        <span class="text-white font-bold text-lg leading-tight">Missouri<br><span class="text-yellow-400">Construction</span></span>
+                    </a>
+                </div>
+                <div class="hidden md:flex items-center space-x-6 text-sm font-medium">
+                    <a href="{% url 'construction:project_list' %}" class="text-gray-300 hover:text-yellow-400 transition">Projects</a>
+                    <a href="{% url 'construction:gallery' %}" class="text-gray-300 hover:text-yellow-400 transition">Busch Stadium Gallery</a>
+                    <a href="{% url 'construction:bids_list' %}" class="text-gray-300 hover:text-yellow-400 transition">Bid Opportunities</a>
+                    <a href="{% url 'construction:permits_list' %}" class="text-gray-300 hover:text-yellow-400 transition">Permits</a>
+                    <a href="{% url 'construction:apprenticeships' %}" class="text-yellow-300 hover:text-yellow-400 transition font-semibold">Apprenticeships</a>
+                    <a href="{% url 'construction:about' %}" class="text-gray-300 hover:text-yellow-400 transition">About</a>
+                    <!-- High Contrast Toggle -->
+                    <button id="contrast-toggle" class="p-2 rounded-lg border border-gray-600 hover:border-yellow-400 transition" title="Toggle High Contrast / Light Mode">
+                        <svg class="h-5 w-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                    </button>
+                    <!-- MS Partner badge (nav, small) -->
+                    <a href="https://partner.microsoft.com" target="_blank" rel="noopener" title="Microsoft Partner Network">
+                        <img src="/static/images/microsoft-partner.png" alt="Microsoft Partner" class="h-6 w-auto opacity-75 hover:opacity-100 transition" onerror="this.style.display='none'">
+                    </a>
+                    <a href="/admin/" class="bg-yellow-400 text-gray-900 px-3 py-1 rounded font-bold hover:bg-yellow-300 transition">Admin</a>
+                </div>
+                <!-- Mobile menu button -->
+                <button id="mobile-menu-btn" class="md:hidden text-gray-300 hover:text-white focus:outline-none">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <!-- Mobile menu -->
+        <div id="mobile-menu" class="md:hidden hidden bg-gray-800 px-4 pb-4 space-y-2 text-sm">
+            <a href="{% url 'construction:project_list' %}" class="block py-2 text-gray-300 hover:text-yellow-400">Projects</a>
+            <a href="{% url 'construction:gallery' %}" class="block py-2 text-gray-300 hover:text-yellow-400">Busch Stadium Gallery</a>
+            <a href="{% url 'construction:bids_list' %}" class="block py-2 text-gray-300 hover:text-yellow-400">Bid Opportunities</a>
+            <a href="{% url 'construction:permits_list' %}" class="block py-2 text-gray-300 hover:text-yellow-400">Permits</a>
+            <a href="{% url 'construction:apprenticeships' %}" class="block py-2 text-yellow-300 hover:text-yellow-400 font-semibold">Apprenticeships</a>
+            <a href="{% url 'construction:about' %}" class="block py-2 text-gray-300 hover:text-yellow-400">About</a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-gray-400 mt-16 py-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <h3 class="text-white font-bold text-lg mb-3">Missouri Construction</h3>
+                    <p class="text-sm">Documenting the projects, bids, and permits building Missouri — from Busch Stadium III to Springfield infrastructure.</p>
+                </div>
+                <div>
+                    <h3 class="text-white font-bold mb-3">Quick Links</h3>
+                    <ul class="space-y-1 text-sm">
+                        <li><a href="{% url 'construction:project_list' %}" class="hover:text-yellow-400 transition">Projects</a></li>
+                        <li><a href="{% url 'construction:gallery' %}" class="hover:text-yellow-400 transition">Busch Stadium Gallery</a></li>
+                        <li><a href="{% url 'construction:bids_list' %}" class="hover:text-yellow-400 transition">Bid Opportunities</a></li>
+                        <li><a href="{% url 'construction:permits_list' %}" class="hover:text-yellow-400 transition">Permit Records</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-white font-bold mb-3">Related Sites</h3>
+                    <ul class="space-y-1 text-sm">
+                        <li><a href="https://seekingspringfield.com" target="_blank" rel="noopener" class="hover:text-yellow-400 transition">Seeking Springfield</a></li>
+                        <li><a href="https://cloudandsecurelimited.com" target="_blank" rel="noopener" class="hover:text-yellow-400 transition">Cloud and Secure Limited</a></li>
+                    </ul>
+                </div>
+            </div>
+            <!-- Microsoft Partner Badge -->
+            <div class="mt-6 flex justify-center">
+                <a href="https://partner.microsoft.com" target="_blank" rel="noopener" title="Microsoft Partner Network">
+                    <img src="/static/images/microsoft-partner.png" alt="Microsoft Partner" class="h-10 w-auto opacity-90 hover:opacity-100 transition" onerror="this.style.display='none'">
+                </a>
+            </div>
+            <div class="mt-6 pt-6 border-t border-gray-700 text-center text-xs">
+                &copy; {% now "Y" %} Missouri Construction &mdash; <a href="https://cloudandsecurelimited.com" target="_blank" rel="noopener" class="hover:text-yellow-400 transition">Cloud and Secure Limited</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.getElementById('mobile-menu-btn').addEventListener('click', function() {
+            document.getElementById('mobile-menu').classList.toggle('hidden');
+        });
+        // High Contrast Toggle
+        const contrastToggle = document.getElementById('contrast-toggle');
+        if (localStorage.getItem('highContrast') === 'true') {
+            document.body.classList.add('high-contrast');
+        }
+        contrastToggle.addEventListener('click', () => {
+            document.body.classList.toggle('high-contrast');
+            localStorage.setItem('highContrast', document.body.classList.contains('high-contrast'));
+        });
+        // OAuth popup closer: if we loaded inside a social login popup and auth succeeded, close it
+        (function() {
+            var path = window.location.pathname;
+            var isOAuthPage = path.indexOf('/accounts/') === 0;
+            if (window.opener && !window.opener.closed && !isOAuthPage) {
+                window.close();
+            }
+        })();
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

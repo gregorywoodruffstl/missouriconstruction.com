@@ -1,0 +1,47 @@
+{
+	"folders": [
+		{
+			"path": "../Djangoframework"
+		},
+		{
+			"path": "../BrentwoodBlvd"
+		},
+		{
+			"path": "../MaddenvilleGazette"
+		},
+		{
+			"path": "../MaddenvilleNights"
+		},
+		{
+			"path": "../MaddenvilleCollection-Website"
+		},
+		{
+			"path": "../QRTats"
+		},
+		{
+			"path": "../mintonhomesllc"
+		},
+		{
+			"path": "../CloudandSecureLimited.com"
+		},
+		{
+			"path": "../CloudandSecureLimitedII.com"
+		},
+		{
+			"path": "../RepresentYourCoordinates"
+		},
+		{
+			"path": "../youbetyourazure"
+		},
+		{
+			"path": "../cloudcertifiedsupport. com"
+		},
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"powershell.cwd": "Djangoframework",
+		"debug.internalConsoleOptions": "neverOpen"
+	}
+}

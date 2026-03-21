@@ -1,0 +1,283 @@
+{% extends "base/base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}{{ business.name }} — {{ business.city.name }}, {{ business.city.state.abbreviation }} | {{ site.display_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+    <!-- Breadcrumb -->
+    <nav class="text-sm text-gray-500 mb-6 flex items-center gap-2 flex-wrap">
+        <a href="{% url 'home' %}" class="hover:text-gray-700">Home</a>
+        <span>›</span>
+        <a href="{% url 'city_home' state=business.city.state.abbreviation|lower city_slug=business.city.name|lower|slugify %}"
+           class="hover:text-gray-700">{{ business.city.name }}, {{ business.city.state.abbreviation }}</a>
+        <span>›</span>
+        <span class="text-gray-900">{{ business.name }}</span>
+    </nav>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+        <!-- Left: Business Info -->
+        <div class="lg:col-span-2 space-y-6">
+
+            <!-- Header Card -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <div class="flex items-start gap-4">
+                    {% if business.logo %}
+                    <img src="{{ business.logo.url }}" alt="{{ business.name }}"
+                         class="h-20 w-20 rounded-xl object-cover flex-shrink-0">
+                    {% else %}
+                    <div class="h-20 w-20 rounded-xl bg-green-100 flex items-center justify-center flex-shrink-0">
+                        <span class="text-3xl font-bold text-green-700">{{ business.name|first|upper }}</span>
+                    </div>
+                    {% endif %}
+
+                    <div class="flex-1">
+                        <div class="flex items-start justify-between flex-wrap gap-2">
+                            <div>
+                                <h1 class="text-2xl font-bold text-gray-900">{{ business.name }}</h1>
+                                <p class="text-sm text-gray-500 mt-0.5">
+                                    {{ business.get_category_display }} · {{ business.city.name }}, {{ business.city.state.abbreviation }}
+                                </p>
+                            </div>
+                            {% if business.tier != 'FREE' %}
+                            <span class="text-xs bg-yellow-100 text-yellow-800 font-semibold px-2 py-1 rounded-full">
+                                {% if business.tier == 'FEATURED' %}⭐ Featured{% else %}Premium{% endif %}
+                            </span>
+                            {% endif %}
+                        </div>
+
+                        <!-- Rating -->
+                        {% if business.average_rating %}
+                        <div class="flex items-center gap-1 mt-2">
+                            {% for i in "12345" %}
+                            <svg class="h-4 w-4 {% if forloop.counter <= business.average_rating %}text-yellow-400{% else %}text-gray-200{% endif %}"
+                                 fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                            </svg>
+                            {% endfor %}
+                            <span class="text-sm text-gray-500 ml-1">{{ business.average_rating }} ({{ business.review_count_display }} reviews)</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if business.description %}
+                <p class="mt-4 text-gray-700 text-sm leading-relaxed">{{ business.description }}</p>
+                {% endif %}
+
+                <!-- Contact Details -->
+                <div class="mt-5 flex flex-wrap gap-4 text-sm">
+                    {% if business.phone %}
+                    <a href="tel:{{ business.phone }}"
+                       class="flex items-center gap-1.5 text-green-700 hover:text-green-900 font-medium">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                        </svg>
+                        {{ business.phone }}
+                    </a>
+                    {% endif %}
+                    {% if business.website %}
+                    <a href="{{ business.website }}" target="_blank" rel="noopener noreferrer"
+                       class="flex items-center gap-1.5 text-blue-600 hover:text-blue-800 font-medium">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                        </svg>
+                        Visit Website
+                    </a>
+                    {% endif %}
+                    {% if business.address %}
+                    <span class="flex items-center gap-1.5 text-gray-500">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                        {{ business.address }}
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Products for Sale -->
+            {% if products %}
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-bold text-gray-900">Products for Sale</h2>
+                    <a href="{% url 'marketplace_home' %}?city={{ business.city.name }}"
+                       class="text-sm text-green-600 hover:text-green-800 font-medium">View all →</a>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {% for product in products %}
+                    <a href="{% url 'product_detail' slug=product.slug %}"
+                       class="rounded-lg border border-gray-100 overflow-hidden hover:shadow-md transition">
+                        <div class="aspect-square bg-gray-100">
+                            {% if product.hero_image_url %}
+                            <img src="{{ product.hero_image_url }}" alt="{{ product.name }}"
+                                 class="w-full h-full object-cover">
+                            {% endif %}
+                        </div>
+                        <div class="p-2">
+                            <p class="text-xs font-semibold text-gray-800 line-clamp-2">{{ product.name }}</p>
+                            <p class="text-xs text-green-700 font-bold mt-0.5">${{ product.current_price }}</p>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Reviews -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <h2 class="text-lg font-bold text-gray-900 mb-4">Customer Reviews</h2>
+                {% if reviews %}
+                <div class="space-y-4">
+                    {% for review in reviews %}
+                    <div class="border-b border-gray-100 pb-4 last:border-0 last:pb-0">
+                        <div class="flex items-center justify-between mb-1">
+                            <p class="text-sm font-semibold text-gray-900">{{ review.user.get_full_name|default:review.user.username }}</p>
+                            <p class="text-xs text-gray-400">{{ review.created_at|date:"M j, Y" }}</p>
+                        </div>
+                        <div class="flex gap-0.5 mb-2">
+                            {% for i in "12345" %}
+                            <svg class="h-3.5 w-3.5 {% if forloop.counter <= review.rating %}text-yellow-400{% else %}text-gray-200{% endif %}"
+                                 fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                            </svg>
+                            {% endfor %}
+                        </div>
+                        {% if review.title %}<p class="text-sm font-medium text-gray-800 mb-1">{{ review.title }}</p>{% endif %}
+                        <p class="text-sm text-gray-600">{{ review.content }}</p>
+                        {% if review.business_response %}
+                        <div class="mt-2 bg-gray-50 rounded-md p-3 text-xs text-gray-600">
+                            <span class="font-semibold text-gray-800">Response from {{ business.name }}:</span>
+                            {{ review.business_response }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-sm text-gray-400">No reviews yet — be the first to leave one!</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Right Sidebar: Census + Traffic Data -->
+        <div class="space-y-4">
+
+            <!-- Census Demographics -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+                <div class="flex items-center gap-2 mb-4">
+                    <svg class="h-5 w-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                    <h3 class="font-bold text-gray-900 text-sm">{{ business.city.name }} Demographics</h3>
+                </div>
+                <p class="text-xs text-gray-400 mb-3">U.S. Census Bureau ACS 5-Year Estimates</p>
+
+                {% if census_data %}
+                <dl class="space-y-2.5">
+                    {% if census_data.total_population %}
+                    <div class="flex justify-between text-sm">
+                        <dt class="text-gray-500">Population</dt>
+                        <dd class="font-semibold text-gray-900">{{ census_data.total_population|intcomma }}</dd>
+                    </div>
+                    {% endif %}
+                    {% if census_data.median_household_income %}
+                    <div class="flex justify-between text-sm">
+                        <dt class="text-gray-500">Median Income</dt>
+                        <dd class="font-semibold text-green-700">${{ census_data.median_household_income|intcomma }}/yr</dd>
+                    </div>
+                    {% endif %}
+                    {% if census_data.median_home_value %}
+                    <div class="flex justify-between text-sm">
+                        <dt class="text-gray-500">Median Home Value</dt>
+                        <dd class="font-semibold text-gray-900">${{ census_data.median_home_value|intcomma }}</dd>
+                    </div>
+                    {% endif %}
+                    {% if census_data.median_age %}
+                    <div class="flex justify-between text-sm">
+                        <dt class="text-gray-500">Median Age</dt>
+                        <dd class="font-semibold text-gray-900">{{ census_data.median_age }} yrs</dd>
+                    </div>
+                    {% endif %}
+                    {% if census_data.unemployment_rate_pct %}
+                    <div class="flex justify-between text-sm">
+                        <dt class="text-gray-500">Unemployment</dt>
+                        <dd class="font-semibold text-gray-900">{{ census_data.unemployment_rate_pct }}%</dd>
+                    </div>
+                    {% endif %}
+                    {% if census_data.owner_occupied_pct %}
+                    <div class="flex justify-between text-sm">
+                        <dt class="text-gray-500">Homeownership</dt>
+                        <dd class="font-semibold text-gray-900">{{ census_data.owner_occupied_pct }}%</dd>
+                    </div>
+                    {% endif %}
+                </dl>
+                {% else %}
+                <p class="text-xs text-gray-400">Census data unavailable for this city.</p>
+                {% endif %}
+            </div>
+
+            <!-- US DOT Traffic Data -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+                <div class="flex items-center gap-2 mb-4">
+                    <svg class="h-5 w-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
+                    </svg>
+                    <h3 class="font-bold text-gray-900 text-sm">Area Traffic Volume</h3>
+                </div>
+                <p class="text-xs text-gray-400 mb-3">US Dept. of Transportation — FHWA HPMS</p>
+
+                {% if traffic_data %}
+                <dl class="space-y-2.5">
+                    <div class="flex justify-between text-sm">
+                        <dt class="text-gray-500">Vehicles/Day (AADT)</dt>
+                        <dd class="font-semibold text-gray-900">~{{ traffic_data.aadt_estimate|intcomma }}</dd>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <dt class="text-gray-500">Vehicles/Week</dt>
+                        <dd class="font-semibold text-orange-600">~{{ traffic_data.weekly_estimate|intcomma }}</dd>
+                    </div>
+                    {% if traffic_data.top_corridor_aadt %}
+                    <div class="flex justify-between text-sm">
+                        <dt class="text-gray-500">Top Corridor/Day</dt>
+                        <dd class="font-semibold text-gray-900">~{{ traffic_data.top_corridor_aadt|intcomma }}</dd>
+                    </div>
+                    {% endif %}
+                </dl>
+                <p class="text-xs text-gray-400 mt-3 leading-relaxed">{{ traffic_data.note }}</p>
+                <a href="{{ traffic_data.source_url }}" target="_blank" rel="noopener noreferrer"
+                   class="text-xs text-blue-500 hover:text-blue-700 mt-1 inline-block">
+                    Source: {{ traffic_data.source }} ↗
+                </a>
+                {% else %}
+                <p class="text-xs text-gray-400">Traffic data unavailable.</p>
+                {% endif %}
+            </div>
+
+            <!-- Why This Data Matters (marketing copy for businesses) -->
+            <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-100 p-5 text-sm text-green-900">
+                <p class="font-semibold mb-2">Why does this matter to you?</p>
+                <p class="text-xs text-green-700 leading-relaxed">
+                    Census median income tells you your customers' spending power.
+                    AADT (Annual Average Daily Traffic) tells you how many potential customers drive past
+                    the area every day. Together they help you price, market, and grow your business smarter.
+                </p>
+                <a href="{% url 'marketplace_home' %}"
+                   class="inline-block mt-3 text-xs font-semibold text-green-800 hover:text-green-900 underline">
+                    List products in the marketplace →
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

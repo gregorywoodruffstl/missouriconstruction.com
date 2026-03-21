@@ -1,0 +1,117 @@
+# Spanish translations for Seeking Springfield / Missouri Construction
+# Generated: 2026-03-20
+msgid ""
+msgstr ""
+"Project-Id-Version: SeekingSpringfield 1.0\n"
+"Report-Msgid-Bugs-To: edmund@cloudandsecurelimited.com\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+# City hero
+msgid "City Guide & Demographics"
+msgstr "Guía de la Ciudad y Demografía"
+
+msgid "Population"
+msgstr "Población"
+
+msgid "Median Income"
+msgstr "Ingreso Medio"
+
+msgid "State Flower"
+msgstr "Flor del Estado"
+
+msgid "State Tree"
+msgstr "Árbol del Estado"
+
+msgid "GPS Coordinates"
+msgstr "Coordenadas GPS"
+
+msgid "State Capital"
+msgstr "Capital del Estado"
+
+# Navigation
+msgid "Home"
+msgstr "Inicio"
+
+msgid "All Cities"
+msgstr "Todas las Ciudades"
+
+msgid "Articles"
+msgstr "Artículos"
+
+msgid "Events"
+msgstr "Eventos"
+
+msgid "Business Directory"
+msgstr "Directorio de Negocios"
+
+msgid "About"
+msgstr "Acerca de"
+
+msgid "Login"
+msgstr "Iniciar Sesión"
+
+# Sections
+msgid "Sports & Local Teams"
+msgstr "Deportes y Equipos Locales"
+
+msgid "Featured Businesses"
+msgstr "Negocios Destacados"
+
+msgid "Current Weather"
+msgstr "Clima Actual"
+
+msgid "5-Day Forecast"
+msgstr "Pronóstico de 5 Días"
+
+msgid "Quick Links"
+msgstr "Enlaces Rápidos"
+
+msgid "Demographics"
+msgstr "Demografía"
+
+msgid "Things to Do"
+msgstr "Qué Hacer"
+
+msgid "Real Estate"
+msgstr "Bienes Raíces"
+
+msgid "Local Businesses"
+msgstr "Negocios Locales"
+
+msgid "Hotels in"
+msgstr "Hoteles en"
+
+msgid "Compare rates across top booking sites"
+msgstr "Compara tarifas en los mejores sitios de reserva"
+
+msgid "We may earn a commission — at no cost to you"
+msgstr "Podemos ganar una comisión, sin costo para usted"
+
+msgid "Photos of"
+msgstr "Fotos de"
+
+msgid "Shared by the community — tagged automatically by AI"
+msgstr "Compartido por la comunidad — etiquetado automáticamente por IA"
+
+msgid "Sign in to Upload"
+msgstr "Inicia sesión para subir"
+
+msgid "No photos yet"
+msgstr "Aún no hay fotos"
+
+msgid "Feels Like"
+msgstr "Sensación Térmica"
+
+msgid "Humidity"
+msgstr "Humedad"
+
+msgid "Wind"
+msgstr "Viento"
+
+# Footer
+msgid "Comprehensive city guides powered by U.S. Census data and AI-generated content. Discover demographics, attractions, and local insights."
+msgstr "Guías completas de ciudades impulsadas por datos del Censo de EE.UU. y contenido generado por IA. Descubre demografía, atracciones e información local."

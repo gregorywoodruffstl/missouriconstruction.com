@@ -1,0 +1,32 @@
+{% extends "base/base.html" %}
+{% block title %}All Springfields — {{ site.display_name|default:"Seeking Springfield" }}{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 py-8">
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-900">All 22 Springfields</h1>
+    <p class="text-gray-500 mt-1">Every city named Springfield across the United States</p>
+  </div>
+
+  <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    {% for city in cities %}{% if city.name %}
+    <a href="{% url 'city_home' city.state.abbreviation|lower city.name|slugify %}"
+       class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition flex items-center justify-between group">
+      <div>
+        <div class="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-0.5">{{ city.state.abbreviation|upper }}</div>
+        <div class="text-lg font-bold text-gray-900 group-hover:text-green-600 transition">{{ city.name }}</div>
+        <div class="text-xs text-gray-400 mt-0.5">{{ city.state.name }}</div>
+        {% if city.population %}
+        <div class="text-xs text-gray-400 mt-1">Pop. {{ city.population|floatformat:0 }}</div>
+        {% endif %}
+      </div>
+      <svg class="w-5 h-5 text-gray-300 group-hover:text-green-500 transition shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+      </svg>
+    </a>
+    {% endif %}{% empty %}
+    <p class="col-span-3 text-gray-400 text-center py-20">No cities found.</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,254 @@
+{% extends "base/base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}{{ article.title }} | {{ site.display_name }}{% endblock %}
+
+{% block meta_description %}{{ article.meta_description|default:article.excerpt|default:article.content|truncatewords:30 }}{% endblock %}
+
+{% block meta_keywords %}{{ article.keywords|default:"" }}{% endblock %}
+
+{% block content %}
+
+<!-- Article Header -->
+<div class="bg-gradient-to-r from-blue-600 to-green-600 text-white py-12">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Breadcrumb -->
+        <nav class="text-sm mb-4 opacity-90">
+            <a href="/" class="hover:underline">Home</a>
+            <span class="mx-2">/</span>
+            <a href="/cities/{{ article.city.state|lower }}/{{ article.city.name|slugify }}/" class="hover:underline">
+                {{ article.city.name }}, {{ article.city.state }}
+            </a>
+            <span class="mx-2">/</span>
+            <span>{{ article.get_category_display }}</span>
+        </nav>
+        
+        <h1 class="text-3xl md:text-4xl font-bold mb-4">{{ article.title }}</h1>
+        
+        <div class="flex flex-wrap items-center gap-4 text-sm">
+            <div class="flex items-center space-x-2">
+                <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
+                </svg>
+                <span>{{ article.published_date|date:"F d, Y" }}</span>
+            </div>
+            
+            <div class="flex items-center space-x-2">
+                <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                    <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
+                </svg>
+                <span>{{ article.view_count|default:0 }} views</span>
+            </div>
+            
+            {% if article.ai_generated %}
+            <div class="flex items-center space-x-2 bg-white bg-opacity-20 px-3 py-1 rounded-full">
+                <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M6 6V5a3 3 0 013-3h2a3 3 0 013 3v1h2a2 2 0 012 2v3.57A22.952 22.952 0 0110 13a22.95 22.95 0 01-8-1.43V8a2 2 0 012-2h2zm2-1a1 1 0 011-1h2a1 1 0 011 1v1H8V5zm1 5a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z" clip-rule="evenodd"/>
+                    <path d="M2 13.692V16a2 2 0 002 2h12a2 2 0 002-2v-2.308A24.974 24.974 0 0110 15c-2.796 0-5.487-.46-8-1.308z"/>
+                </svg>
+                <span class="text-xs">AI-Enhanced Content</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Article Content (2/3 width) -->
+        <div class="lg:col-span-2">
+            <article class="bg-white rounded-lg shadow-md p-8 prose prose-lg max-w-none">
+                {% if article.featured_image %}
+                <img src="{{ article.featured_image.url }}" alt="{{ article.title }}" class="w-full rounded-lg mb-8">
+                {% endif %}
+                
+                <!-- Article Body -->
+                <div class="article-content">
+                    {{ article.content|linebreaks }}
+                </div>
+                
+                <!-- Data Attribution (if Census data used) -->
+                {% if article.ai_generated and article.city.census_data %}
+                <div class="mt-8 p-4 bg-blue-50 border-l-4 border-blue-500 rounded">
+                    <p class="text-sm text-gray-700">
+                        <strong>Data Sources:</strong> Demographic information sourced from U.S. Census Bureau 
+                        (American Community Survey 5-Year Estimates, 2022). 
+                        Last updated: {{ article.city.last_census_updated|date:"F Y" }}.
+                    </p>
+                </div>
+                {% endif %}
+                
+                <!-- Share Buttons -->
+                <div class="mt-8 pt-6 border-t border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-semibold text-gray-700">Share this article:</span>
+                        <div class="flex space-x-3">
+                            <a href="https://twitter.com/intent/tweet?url={{ request.build_absolute_uri }}&text={{ article.title|urlencode }}" 
+                               target="_blank" 
+                               class="p-2 bg-blue-400 text-white rounded-full hover:bg-blue-500 transition"
+                               aria-label="Share on Twitter">
+                                <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
+                                </svg>
+                            </a>
+                            <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}" 
+                               target="_blank" 
+                               class="p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition"
+                               aria-label="Share on Facebook">
+                                <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                                </svg>
+                            </a>
+                            <a href="https://www.linkedin.com/shareArticle?mini=true&url={{ request.build_absolute_uri }}&title={{ article.title|urlencode }}" 
+                               target="_blank" 
+                               class="p-2 bg-blue-700 text-white rounded-full hover:bg-blue-800 transition"
+                               aria-label="Share on LinkedIn">
+                                <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </article>
+            
+            <!-- Related Articles -->
+            {% if related_articles %}
+            <div class="mt-12">
+                <h2 class="text-2xl font-bold mb-6 text-gray-900">Related Articles</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {% for related in related_articles %}
+                    <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition">
+                        <span class="text-xs font-semibold text-primary uppercase">{{ related.get_category_display }}</span>
+                        <h3 class="text-lg font-semibold mt-2 mb-2">
+                            <a href="/article/{{ related.slug }}/" class="text-gray-900 hover:text-primary transition">
+                                {{ related.title }}
+                            </a>
+                        </h3>
+                        <p class="text-sm text-gray-600 mb-3">{{ related.excerpt|truncatewords:20 }}</p>
+                        <a href="/article/{{ related.slug }}/" class="text-sm text-primary hover:text-primary-dark font-semibold">
+                            Read More →
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Sidebar (1/3 width) -->
+        <div class="lg:col-span-1 space-y-6">
+            
+            <!-- City Quick Info -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-xl font-bold mb-4 text-gray-900">About {{ article.city.name }}</h3>
+                {% if article.city.population %}
+                <div class="space-y-3 text-sm">
+                    <div class="flex justify-between border-b border-gray-200 pb-2">
+                        <span class="text-gray-600">Population:</span>
+                        <span class="font-semibold">{{ article.city.population|floatformat:0|intcomma }}</span>
+                    </div>
+                    {% if article.city.median_income %}
+                    <div class="flex justify-between border-b border-gray-200 pb-2">
+                        <span class="text-gray-600">Median Income:</span>
+                        <span class="font-semibold">${{ article.city.median_income|floatformat:0|intcomma }}</span>
+                    </div>
+                    {% endif %}
+                    {% if article.city.census_data.median_age %}
+                    <div class="flex justify-between border-b border-gray-200 pb-2">
+                        <span class="text-gray-600">Median Age:</span>
+                        <span class="font-semibold">{{ article.city.census_data.median_age|floatformat:1 }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+                <a href="/cities/{{ article.city.state|lower }}/{{ article.city.name|slugify }}/" 
+                   class="mt-4 block text-center bg-primary text-white py-2 rounded-lg hover:bg-primary-dark transition">
+                    View City Page
+                </a>
+            </div>
+            
+            <!-- Current Weather (Mini Widget) -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-xl font-bold mb-4 text-gray-900">Current Weather</h3>
+                <div id="sidebar-weather" class="text-center">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
+                </div>
+            </div>
+            
+            <!-- More Articles from This City -->
+            {% if more_city_articles %}
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-xl font-bold mb-4 text-gray-900">More About {{ article.city.name }}</h3>
+                <ul class="space-y-3">
+                    {% for city_article in more_city_articles %}
+                    <li class="border-b border-gray-200 pb-3 last:border-b-0">
+                        <a href="/article/{{ city_article.slug }}/" class="text-sm font-semibold text-gray-900 hover:text-primary transition">
+                            {{ city_article.title|truncatewords:10 }}
+                        </a>
+                        <div class="text-xs text-gray-500 mt-1">
+                            {{ city_article.published_date|date:"M d" }} • {{ city_article.view_count|default:0 }} views
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+            
+            <!-- Newsletter Signup -->
+            <div class="bg-gradient-to-br from-blue-600 to-green-600 rounded-lg shadow-md p-6 text-white">
+                <h3 class="text-xl font-bold mb-2">Stay Updated</h3>
+                <p class="text-sm mb-4 opacity-90">Get the latest articles about {{ article.city.name }} delivered to your inbox.</p>
+                <form action="/newsletter/subscribe/" method="POST" class="space-y-3">
+                    {% csrf_token %}
+                    <input type="hidden" name="city_id" value="{{ article.city.id }}">
+                    <input type="email" name="email" placeholder="your@email.com" required
+                           class="w-full px-4 py-2 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-white">
+                    <button type="submit" class="w-full bg-white text-blue-600 font-semibold py-2 rounded-lg hover:bg-gray-100 transition">
+                        Subscribe
+                    </button>
+                </form>
+            </div>
+            
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Sidebar Weather Widget
+async function loadSidebarWeather() {
+    try {
+        const cityName = "{{ article.city.name }}";
+        const state = "{{ article.city.state }}";
+        const apiKey = 'YOUR_OPENWEATHER_API_KEY';  // TODO: Environment variable
+        
+        const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${cityName},${state},US&appid=${apiKey}&units=imperial`);
+        
+        if (!response.ok) throw new Error('Weather unavailable');
+        
+        const data = await response.json();
+        
+        document.getElementById('sidebar-weather').innerHTML = `
+            <div class="text-4xl font-bold text-gray-900">${Math.round(data.main.temp)}°F</div>
+            <div class="text-sm text-gray-600 mt-2">${data.weather[0].description}</div>
+            <div class="mt-3 text-xs text-gray-500">
+                Feels like ${Math.round(data.main.feels_like)}°F
+            </div>
+        `;
+    } catch (error) {
+        document.getElementById('sidebar-weather').innerHTML = `
+            <p class="text-sm text-gray-500">Weather unavailable</p>
+        `;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', loadSidebarWeather);
+</script>
+{% endblock %}

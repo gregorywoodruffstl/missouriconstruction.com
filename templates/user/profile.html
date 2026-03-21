@@ -1,0 +1,348 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block title %}My Profile - {{ user.get_full_name }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="bg-white shadow rounded-lg mb-6">
+            <div class="px-6 py-8">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <!-- Profile Photo -->
+                        <div class="h-20 w-20 rounded-full bg-blue-600 flex items-center justify-center text-white text-2xl font-bold">
+                            {% if profile.profile_photo %}
+                            <img src="{{ profile.profile_photo.url }}" class="h-20 w-20 rounded-full object-cover" alt="{{ user.get_full_name }}">
+                            {% else %}
+                            {{ user.first_name.0 }}{{ user.last_name.0 }}
+                            {% endif %}
+                        </div>
+                        
+                        <!-- User Info -->
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-900">
+                                {{ user.get_full_name }}
+                            </h1>
+                            <p class="text-gray-500">@{{ user.username }}</p>
+                            <div class="mt-1 flex items-center space-x-2">
+                                <!-- Citizen Badge -->
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    ✓ Citizen Member (FREE)
+                                </span>
+                                
+                                <!-- Email Verified -->
+                                {% if profile.email_verified %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                    ✓ Email Verified
+                                </span>
+                                {% else %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                    ⚠ Email Not Verified
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Edit Profile Button -->
+                    <div>
+                        <a href="{% url 'edit_profile' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                            <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                            </svg>
+                            Edit Profile
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Default Springfield -->
+                {% if profile.default_city %}
+                <div class="mt-6 border-t border-gray-200 pt-4">
+                    <p class="text-sm text-gray-500">My Springfield</p>
+                    <p class="text-lg font-medium text-gray-900">
+                        <a href="/{{ profile.default_city.state.abbreviation|lower }}/{{ profile.default_city.name|slugify }}/" class="text-blue-600 hover:text-blue-800">
+                            {{ profile.default_city.name }}, {{ profile.default_city.state.abbreviation }}
+                        </a>
+                    </p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Left Column - Activity Stats -->
+            <div class="lg:col-span-1 space-y-6">
+                <!-- Stats Card -->
+                <div class="bg-white shadow rounded-lg p-6">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4">Activity</h2>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Reviews</span>
+                            <span class="text-2xl font-bold text-blue-600">{{ profile.review_count }}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Bookmarks</span>
+                            <span class="text-2xl font-bold text-blue-600">{{ profile.bookmark_count }}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Comments</span>
+                            <span class="text-2xl font-bold text-blue-600">{{ profile.comment_count }}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Events Submitted</span>
+                            <span class="text-2xl font-bold text-blue-600">{{ profile.event_submissions }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Email Preferences -->
+                <div class="bg-white shadow rounded-lg p-6">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4">Email Preferences</h2>
+                    <div class="space-y-3">
+                        <div class="flex items-center">
+                            {% if profile.email_weekly_digest %}
+                            <svg class="h-5 w-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="text-sm text-gray-700">Weekly Digest</span>
+                            {% else %}
+                            <svg class="h-5 w-5 text-gray-300 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="text-sm text-gray-400">Weekly Digest</span>
+                            {% endif %}
+                        </div>
+                        <div class="flex items-center">
+                            {% if profile.email_new_businesses %}
+                            <svg class="h-5 w-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="text-sm text-gray-700">New Businesses</span>
+                            {% else %}
+                            <svg class="h-5 w-5 text-gray-300 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="text-sm text-gray-400">New Businesses</span>
+                            {% endif %}
+                        </div>
+                        <div class="flex items-center">
+                            {% if profile.email_new_events %}
+                            <svg class="h-5 w-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="text-sm text-gray-700">Events</span>
+                            {% else %}
+                            <svg class="h-5 w-5 text-gray-300 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="text-sm text-gray-400">Events</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <a href="{% url 'edit_profile' %}" class="mt-4 block text-sm text-blue-600 hover:text-blue-800">
+                        Update preferences →
+                    </a>
+                </div>
+
+                <!-- Upgrade CTA -->
+                {% if profile.user_type == 'CITIZEN' %}
+                <div class="bg-gradient-to-br from-blue-500 to-indigo-600 shadow rounded-lg p-6 text-white">
+                    <h3 class="text-lg font-semibold mb-2">Own a Business?</h3>
+                    <p class="text-sm text-blue-100 mb-4">
+                        Upgrade to Premium and get discovered by thousands of local customers.
+                    </p>
+                    <ul class="space-y-2 text-sm text-blue-100 mb-4">
+                        <li>✓ 30-day FREE trial</li>
+                        <li>✓ Unlimited business listings</li>
+                        <li>✓ Respond to reviews</li>
+                        <li>✓ Premium badge</li>
+                    </ul>
+                    <a href="{% url 'business_signup' %}" class="block w-full text-center px-4 py-2 bg-white text-blue-600 font-medium rounded-md hover:bg-blue-50 transition">
+                        Try FREE for 30 Days
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Right Column - Content Tabs -->
+            <div class="lg:col-span-2">
+                <div class="bg-white shadow rounded-lg">
+                    <!-- Tabs -->
+                    <div class="border-b border-gray-200">
+                        <nav class="-mb-px flex space-x-8 px-6" aria-label="Tabs">
+                            <a href="?tab=bookmarks" class="{% if active_tab == 'bookmarks' or not active_tab %}border-blue-500 text-blue-600{% else %}border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300{% endif %} whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                                Bookmarks
+                            </a>
+                            <a href="?tab=reviews" class="{% if active_tab == 'reviews' %}border-blue-500 text-blue-600{% else %}border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300{% endif %} whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                                My Reviews
+                            </a>
+                            <a href="?tab=businesses" class="{% if active_tab == 'businesses' %}border-blue-500 text-blue-600{% else %}border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300{% endif %} whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                                My Businesses
+                            </a>
+                        </nav>
+                    </div>
+
+                    <!-- Tab Content -->
+                    <div class="p-6">
+                        {% if active_tab == 'reviews' %}
+                        <!-- Reviews Tab -->
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">My Reviews ({{ reviews.count }})</h3>
+                        {% if reviews %}
+                        <div class="space-y-4">
+                            {% for review in reviews %}
+                            <div class="border border-gray-200 rounded-lg p-4">
+                                <div class="flex items-start justify-between">
+                                    <div class="flex-1">
+                                        <h4 class="font-medium text-gray-900">{{ review.business.name }}</h4>
+                                        <div class="flex items-center mt-1">
+                                            <div class="flex text-yellow-400">
+                                                {% for i in "12345" %}
+                                                    {% if forloop.counter <= review.rating %}
+                                                    ★
+                                                    {% else %}
+                                                    ☆
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </div>
+                                            <span class="ml-2 text-sm text-gray-500">{{ review.created_at|date:"M d, Y" }}</span>
+                                        </div>
+                                        <p class="mt-2 text-gray-700">{{ review.content|truncatewords:30 }}</p>
+                                        {% if not review.approved %}
+                                        <span class="mt-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                            Pending Approval
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                    <a href="{% url 'business_detail' review.business.slug %}" class="text-sm text-blue-600 hover:text-blue-800">View →</a>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="text-center py-12">
+                            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
+                            </svg>
+                            <h3 class="mt-2 text-sm font-medium text-gray-900">No reviews yet</h3>
+                            <p class="mt-1 text-sm text-gray-500">Start by reviewing a business in your Springfield!</p>
+                        </div>
+                        {% endif %}
+
+                        {% elif active_tab == 'businesses' %}
+                        <!-- My Businesses Tab -->
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">My Businesses</h3>
+                        {% if managed_businesses %}
+                        <div class="space-y-4">
+                            {% for business in managed_businesses %}
+                            <div class="border border-gray-200 rounded-lg p-4">
+                                <div class="flex items-start justify-between">
+                                    <div class="flex-1">
+                                        <h4 class="font-medium text-gray-900">{{ business.name }}</h4>
+                                        <p class="text-sm text-gray-500">{{ business.category }}</p>
+                                        <div class="mt-2 flex items-center space-x-2">
+                                            <span class="text-sm text-gray-600">{{ business.review_count_display }} reviews</span>
+                                            <span class="text-gray-300">•</span>
+                                            <span class="text-sm text-gray-600">{{ business.average_rating|floatformat:1 }}★</span>
+                                        </div>
+                                    </div>
+                                    <a href="{% url 'business_dashboard' business.slug %}" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700">
+                                        Manage
+                                    </a>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="text-center py-12">
+                            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                            </svg>
+                            <h3 class="mt-2 text-sm font-medium text-gray-900">No businesses yet</h3>
+                            <p class="mt-1 text-sm text-gray-500">Claim your business or upgrade to Premium to add listings</p>
+                            <a href="{% url 'business_signup' %}" class="mt-4 inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700">
+                                Try Premium FREE
+                            </a>
+                        </div>
+                        {% endif %}
+
+                        {% else %}
+                        <!-- Bookmarks Tab (Default) -->
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">My Bookmarks ({{ bookmarks.count }})</h3>
+                        {% if bookmarks %}
+                        <div class="space-y-4">
+                            {% for bookmark in bookmarks %}
+                            <div class="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition">
+                                <div class="flex items-start justify-between">
+                                    <div class="flex-1">
+                                        {% if bookmark.bookmark_type == 'BUSINESS' %}
+                                        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800 mb-1">
+                                            Business
+                                        </span>
+                                        <h4 class="font-medium text-gray-900">{{ bookmark.business.name }}</h4>
+                                        <p class="text-sm text-gray-500">{{ bookmark.business.address }}</p>
+                                        
+                                        {% elif bookmark.bookmark_type == 'ARTICLE' %}
+                                        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800 mb-1">
+                                            Article
+                                        </span>
+                                        <h4 class="font-medium text-gray-900">{{ bookmark.article.title }}</h4>
+                                        <p class="text-sm text-gray-500">{{ bookmark.article.published_at|date:"M d, Y" }}</p>
+                                        
+                                        {% elif bookmark.bookmark_type == 'EVENT' %}
+                                        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-purple-100 text-purple-800 mb-1">
+                                            Event
+                                        </span>
+                                        <h4 class="font-medium text-gray-900">{{ bookmark.event.title }}</h4>
+                                        <p class="text-sm text-gray-500">{{ bookmark.event.start_date|date:"M d, Y" }}</p>
+                                        {% endif %}
+                                        
+                                        <p class="mt-1 text-xs text-gray-400">Saved {{ bookmark.created_at|date:"M d, Y" }}</p>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        {% if bookmark.bookmark_type == 'BUSINESS' %}
+                                        <a href="{% url 'business_detail' bookmark.business.slug %}" class="text-sm text-blue-600 hover:text-blue-800">View</a>
+                                        {% elif bookmark.bookmark_type == 'ARTICLE' %}
+                                        <a href="{% url 'article_detail' bookmark.article.slug %}" class="text-sm text-blue-600 hover:text-blue-800">Read</a>
+                                        {% elif bookmark.bookmark_type == 'EVENT' %}
+                                        <a href="{% url 'event_detail' bookmark.event.slug %}" class="text-sm text-blue-600 hover:text-blue-800">Details</a>
+                                        {% endif %}
+                                        <button class="text-sm text-red-600 hover:text-red-800" onclick="removeBookmark({{ bookmark.id }})">Remove</button>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="text-center py-12">
+                            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
+                            </svg>
+                            <h3 class="mt-2 text-sm font-medium text-gray-900">No bookmarks yet</h3>
+                            <p class="mt-1 text-sm text-gray-500">Start bookmarking businesses, articles, and events to save them here!</p>
+                        </div>
+                        {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function removeBookmark(bookmarkId) {
+    if (confirm('Remove this bookmark?')) {
+        fetch(`/api/bookmarks/${bookmarkId}/`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        }).then(() => {
+            location.reload();
+        });
+    }
+}
+</script>
+{% endblock %}

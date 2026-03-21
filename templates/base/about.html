@@ -1,0 +1,93 @@
+{% extends "base/base.html" %}
+{% block title %}About — {{ site.display_name|default:"Seeking Springfield" }}{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 py-12">
+
+  <div class="mb-10">
+    <h1 class="text-4xl font-bold text-gray-900">About Seeking Springfield</h1>
+    <p class="text-gray-500 mt-3 text-lg">Connecting people to every city named Springfield in America.</p>
+  </div>
+
+  <div class="prose prose-gray max-w-none space-y-6 text-gray-700">
+    <p>
+      There are <strong>22 cities named Springfield</strong> across the United States — from Springfield, Illinois (the state capital)
+      to Springfield, Oregon, to small towns in Vermont and South Dakota. Each one has its own identity, its own history,
+      and its own story to tell.
+    </p>
+    <p>
+      <strong>Seeking Springfield</strong> is a platform built to explore all of them. Whether you're researching a city to move to,
+      planning a road trip, looking for local events, or just curious about the towns that share a famous name —
+      this is your hub.
+    </p>
+
+    <h2 class="text-xl font-bold text-gray-900 mt-8">What We Offer</h2>
+    <ul class="list-disc pl-5 space-y-2">
+      <li><strong>City Guides</strong> — demographics, demographics, local insights, and AI-powered overviews for each Springfield</li>
+      <li><strong>Live Events</strong> — a master calendar pulling from official municipal calendars across all 22 cities</li>
+      <li><strong>Local News</strong> — curated headlines from local sources for each Springfield</li>
+      <li><strong>Business Directory</strong> — local businesses listed and searchable by city and category</li>
+      <li><strong>Hotel Booking</strong> — find hotels in any Springfield via Expedia, Hotels.com, and Booking.com</li>
+      <li><strong>Articles</strong> — in-depth stories and guides written for each community</li>
+    </ul>
+
+    <h2 class="text-xl font-bold text-gray-900 mt-8">For Businesses</h2>
+    <p>
+      List your Springfield business in our directory. Local business listings help your community find you,
+      and help visitors discover what each Springfield has to offer.
+      <a href="{% url 'business_signup' %}" class="text-green-600 underline font-medium">Get listed →</a>
+    </p>
+
+    <h2 class="text-xl font-bold text-gray-900 mt-8">Built in Missouri</h2>
+    <p>
+      Seeking Springfield is a product of <strong>Cloud and Secure Limited</strong>, a technology company based in Missouri.
+      We build web platforms and cloud solutions for businesses across the country.
+    </p>
+  </div>
+
+</div>
+
+<!-- Upcoming Events Preview -->
+<div class="max-w-3xl mx-auto px-4 pb-16">
+  <div class="border-t border-gray-200 pt-10">
+    <div class="flex items-end justify-between mb-5">
+      <div>
+        <h2 class="text-2xl font-bold text-gray-900">Upcoming Events</h2>
+        <p class="text-gray-500 mt-1 text-sm">Across all 22 Springfields</p>
+      </div>
+      <a href="{% url 'master_calendar' %}" class="text-sm font-semibold text-green-600 hover:text-green-700 transition">Full calendar →</a>
+    </div>
+
+    {% if upcoming_events %}
+    <div class="space-y-3">
+      {% for event in upcoming_events %}
+      <div class="bg-white border border-gray-200 rounded-xl px-5 py-4 shadow-sm flex items-start gap-4">
+        <div class="text-center bg-green-50 border border-green-200 rounded-lg px-3 py-2 shrink-0 min-w-[52px]">
+          <div class="text-xs font-semibold text-green-600 uppercase">{{ event.start_date|date:"M" }}</div>
+          <div class="text-2xl font-bold text-gray-900 leading-none">{{ event.start_date|date:"j" }}</div>
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="text-xs font-semibold text-blue-600 mb-0.5">{{ event.city.name }}, {{ event.city.state.abbreviation|upper }}</div>
+          <h3 class="text-sm font-bold text-gray-900 leading-snug truncate">{{ event.title }}</h3>
+          {% if event.location %}
+          <p class="text-xs text-gray-500 mt-0.5">📍 {{ event.location }}</p>
+          {% endif %}
+        </div>
+        {% if event.url %}
+        <a href="{{ event.url }}" target="_blank" rel="noopener noreferrer" class="text-xs text-green-600 font-semibold hover:underline shrink-0 self-center">Details →</a>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    <div class="mt-5 text-center">
+      <a href="{% url 'master_calendar' %}" class="inline-block bg-green-600 hover:bg-green-700 text-white font-semibold text-sm px-6 py-2.5 rounded-lg transition">View all events across all Springfields</a>
+    </div>
+    {% else %}
+    <div class="bg-gray-50 border border-gray-200 rounded-xl p-8 text-center">
+      <p class="text-gray-500 text-sm">No events scheduled right now. <a href="{% url 'master_calendar' %}" class="text-green-600 underline">Check the full calendar.</a></p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}

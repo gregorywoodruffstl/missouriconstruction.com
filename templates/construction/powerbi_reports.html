@@ -1,0 +1,170 @@
+{% extends 'construction/base.html' %}
+
+{% block title %}Missouri Data Intelligence — Power BI Reports | Missouri Construction{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+  <!-- Header -->
+  <div class="d-flex align-items-center gap-3 mb-2">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/New_Power_BI_Logo.svg/40px-New_Power_BI_Logo.svg.png"
+         alt="Power BI" width="40" height="40">
+    <h1 class="fw-bold mb-0">Missouri Data Intelligence</h1>
+  </div>
+  <p class="text-muted lead mb-5">
+    Interactive Power BI dashboards built on public records, SLDC data, permit databases, and
+    30+ years of on-the-ground documentation. Missouri-first. Hyper-local.
+  </p>
+
+  {% if not user.is_authenticated %}
+  <div class="alert alert-dark border-0 d-flex align-items-center justify-content-between mb-5 flex-wrap gap-3">
+    <div>
+      <strong>Free account required</strong> to access Analyst and Professional reports.
+      Scout-tier reports are always public.
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{% url 'account_signup' %}" class="btn btn-warning btn-sm fw-bold">Create Free Account</a>
+      <a href="{% url 'account_login' %}" class="btn btn-outline-light btn-sm">Sign In</a>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Featured Reports -->
+  {% if featured_reports %}
+  <h4 class="fw-bold mb-3">Featured Reports</h4>
+  <div class="row g-4 mb-5">
+    {% for report, can_view in featured_reports %}
+    <div class="col-lg-6">
+      <div class="card border-0 shadow h-100 overflow-hidden">
+        {% if report.thumbnail_url %}
+        <img src="{{ report.thumbnail_url }}" class="card-img-top"
+             style="height:220px;object-fit:cover;" alt="{{ report.name }}">
+        {% else %}
+        <div class="card-img-top bg-dark d-flex align-items-center justify-content-center"
+             style="height:140px;">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/New_Power_BI_Logo.svg/60px-New_Power_BI_Logo.svg.png"
+               alt="Power BI" width="60" opacity="0.4">
+        </div>
+        {% endif %}
+        <div class="card-body">
+          <div class="d-flex align-items-start justify-content-between mb-2">
+            <h5 class="fw-bold mb-0">{{ report.name }}</h5>
+            <span class="badge ms-2 flex-shrink-0 {% if report.min_tier == 'scout' %}bg-secondary{% elif report.min_tier == 'analyst' %}bg-primary{% elif report.min_tier == 'professional' %}bg-dark{% else %}bg-warning text-dark{% endif %}">
+              {{ report.get_min_tier_display }}
+            </span>
+          </div>
+          {% if report.description %}<p class="small text-muted mb-3">{{ report.description }}</p>{% endif %}
+          {% if can_view %}
+          {% if report.embed_mode == 'public' and report.public_embed_url %}
+          <iframe title="{{ report.name }}"
+                  src="{{ report.public_embed_url }}"
+                  frameborder="0" allowFullScreen="true"
+                  style="width:100%;height:{{ report.default_height_px }}px;border:1px solid #e0e0e0;border-radius:6px;">
+          </iframe>
+          {% else %}
+          <div class="bg-light rounded d-flex align-items-center justify-content-center"
+               style="height:200px;">
+            <a href="#report-{{ report.pk }}" class="btn btn-dark btn-sm">Open Full Report</a>
+          </div>
+          {% endif %}
+          {% else %}
+          <div class="bg-light rounded d-flex flex-column align-items-center justify-content-center gap-2 p-4"
+               style="height:160px;border:1px dashed #ccc;">
+            <span class="text-muted small fw-semibold">🔒 {{ report.get_min_tier_display }} required</span>
+            <a href="{% url 'construction:subscription_plans' %}" class="btn btn-warning btn-sm fw-bold">
+              View Plans
+            </a>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- All Reports by Scope -->
+  {% regroup reports_with_access by 0.get_scope_display as scope_groups %}
+  {% for group in scope_groups %}
+  <h4 class="fw-bold mt-4 mb-3 border-bottom pb-2">{{ group.grouper }}</h4>
+  <div class="row g-3 mb-4">
+    {% for report, can_view in group.list %}
+    <div class="col-md-6 col-xl-4" id="report-{{ report.pk }}">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body d-flex flex-column">
+          <div class="d-flex align-items-start justify-content-between mb-2">
+            <h6 class="fw-bold mb-0">{{ report.name }}</h6>
+            <span class="badge ms-2 flex-shrink-0
+              {% if report.min_tier == 'scout' %}bg-secondary
+              {% elif report.min_tier == 'analyst' %}bg-primary
+              {% elif report.min_tier == 'professional' %}bg-dark
+              {% else %}bg-warning text-dark{% endif %}">
+              {{ report.get_min_tier_display }}
+            </span>
+          </div>
+          {% if report.description %}<p class="small text-muted flex-grow-1">{{ report.description }}</p>{% endif %}
+
+          {% if report.building %}
+          <div class="small text-muted mb-2">
+            🏢 <a href="{% url 'construction:conversion_detail' report.building.slug %}">{{ report.building.original_name|default:report.building.name }}</a>
+          </div>
+          {% endif %}
+          {% if report.neighborhood %}
+          <div class="small text-muted mb-2">
+            📍 <a href="{% url 'construction:neighborhood_detail' report.neighborhood.slug %}">{{ report.neighborhood.name }}</a>
+          </div>
+          {% endif %}
+
+          <div class="mt-auto pt-2">
+            {% if can_view and report.embed_mode == 'public' and report.public_embed_url %}
+            <a href="{{ report.public_embed_url }}" target="_blank" rel="noopener"
+               class="btn btn-outline-dark btn-sm w-100">Open Report ↗</a>
+            {% elif can_view %}
+            <button class="btn btn-dark btn-sm w-100" disabled>
+              Private embed — view on building page
+            </button>
+            {% else %}
+            <a href="{% url 'construction:subscription_plans' %}"
+               class="btn btn-warning btn-sm w-100 fw-bold">
+              Unlock — {{ report.get_min_tier_display }}
+            </a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% empty %}
+  <div class="text-center py-5 text-muted">
+    <div class="display-6 mb-3">📊</div>
+    <h5>Reports are being published</h5>
+    <p class="mb-4">The first Missouri Construction Power BI reports will be live shortly.<br>
+    Enterprise subscribers can request custom dashboards now.</p>
+    <a href="mailto:gregory.woodruff@cloudandsecurelimited.com?subject=Custom Power BI Report Request"
+       class="btn btn-dark fw-bold">Request a Custom Dashboard</a>
+  </div>
+  {% endfor %}
+
+  <!-- Power Platform pitch -->
+  <div class="card border-0 bg-dark text-white mt-5">
+    <div class="card-body row align-items-center px-4 py-4 gap-3">
+      <div class="col-md-8">
+        <h4 class="fw-bold mb-1">Need a custom report for your organization?</h4>
+        <p class="opacity-75 mb-0">
+          We build Power BI reports, Power Apps, and Power Automate flows on the Microsoft Power Platform
+          for construction firms, CDCs, city agencies, and real estate developers across Missouri.
+          $250/hr analysis. Custom dashboards. Azure-hosted. Microsoft Partner certified.
+        </p>
+      </div>
+      <div class="col-md-4 text-md-end">
+        <a href="mailto:gregory.woodruff@cloudandsecurelimited.com?subject=Power BI Custom Report Inquiry"
+           class="btn btn-warning btn-lg fw-bold">
+          Get a Custom Dashboard
+        </a>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,416 @@
+{% extends 'construction/base.html' %}
+{% load humanize %}
+
+{% block title %}{{ conversion.name }} — STL Conversion Analysis | Missouri Construction{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+  <!-- Breadcrumb -->
+  <nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'construction:home' %}">Home</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'construction:conversion_list' %}">STL Conversions</a></li>
+      {% if conversion.neighborhood %}
+      <li class="breadcrumb-item">
+        <a href="{% url 'construction:neighborhood_detail' conversion.neighborhood.slug %}">
+          {{ conversion.neighborhood.name }}
+        </a>
+      </li>
+      {% endif %}
+      <li class="breadcrumb-item active">{{ conversion.original_name|default:conversion.name }}</li>
+    </ol>
+  </nav>
+
+  <div class="row g-5">
+
+    <!-- Left: Main Content -->
+    <div class="col-lg-8">
+
+      {% if conversion.cover_image_url %}
+      <img src="{{ conversion.cover_image_url }}" class="img-fluid rounded mb-4 w-100"
+           style="max-height:400px;object-fit:cover;" alt="{{ conversion.name }}">
+      {% endif %}
+
+      <!-- Title Block -->
+      <div class="d-flex flex-wrap gap-2 mb-3">
+        <span class="badge bg-secondary fs-6">{{ conversion.get_original_building_type_display }}</span>
+        <span class="badge {% if conversion.status == 'completed' %}bg-success{% elif conversion.status == 'in_progress' %}bg-warning text-dark{% else %}bg-light text-dark border{% endif %} fs-6">
+          {{ conversion.get_status_display }}
+        </span>
+        <span class="badge bg-info text-dark fs-6">{{ conversion.get_conversion_type_display }}</span>
+      </div>
+
+      <h1 class="fw-bold mb-1">
+        {{ conversion.original_name|default:conversion.name }}
+      </h1>
+      {% if conversion.current_name and conversion.current_name != conversion.original_name %}
+      <h4 class="text-muted fw-normal mb-3">Now: {{ conversion.current_name }}</h4>
+      {% endif %}
+
+      <p class="text-muted mb-4">
+        📍 {{ conversion.address }}
+        {% if conversion.neighborhood %} — {{ conversion.neighborhood.name }}{% endif %}
+      </p>
+
+      {% if conversion.description %}
+      <div class="mb-5">
+        <h5 class="fw-bold border-bottom pb-2 mb-3">About This Conversion</h5>
+        <p>{{ conversion.description }}</p>
+      </div>
+      {% endif %}
+
+      <!-- Before / After -->
+      <div class="mb-5">
+        <h5 class="fw-bold border-bottom pb-2 mb-3">Before &amp; After</h5>
+        <div class="row g-3">
+          <div class="col-sm-6">
+            <div class="card border-0 bg-light h-100">
+              <div class="card-body">
+                <div class="text-muted small fw-semibold mb-3 text-uppercase">BEFORE</div>
+                <div class="mb-2"><strong>Building Type:</strong> {{ conversion.get_original_building_type_display }}</div>
+                {% if conversion.year_built %}<div class="mb-2"><strong>Year Built:</strong> {{ conversion.year_built }}</div>{% endif %}
+                {% if conversion.original_units %}
+                <div class="mb-2">
+                  <strong>Original Units:</strong>
+                  {{ conversion.original_units }} {{ conversion.original_unit_label }}
+                </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <div class="card border-0 bg-primary text-white h-100">
+              <div class="card-body">
+                <div class="opacity-75 small fw-semibold mb-3 text-uppercase">AFTER</div>
+                <div class="mb-2"><strong>Conversion:</strong> {{ conversion.get_conversion_type_display }}</div>
+                {% if conversion.residential_units %}
+                <div class="mb-2"><strong>Residential Units:</strong> {{ conversion.residential_units }} {{ conversion.get_unit_type_display }}</div>
+                {% endif %}
+                {% if conversion.completion_year %}<div class="mb-2"><strong>Completed:</strong> {{ conversion.completion_year }}</div>{% endif %}
+                {% if conversion.unit_delta %}
+                <div class="mt-3 fw-bold">
+                  {% if conversion.unit_delta > 0 %}
+                  +{{ conversion.unit_delta }} net new units
+                  {% else %}
+                  {{ conversion.unit_delta }} net unit change
+                  {% endif %}
+                </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Parties -->
+      {% if conversion.developer or conversion.architect or conversion.general_contractor %}
+      <div class="mb-5">
+        <h5 class="fw-bold border-bottom pb-2 mb-3">Development Team</h5>
+        <dl class="row">
+          {% if conversion.developer %}
+          <dt class="col-sm-4">Developer</dt>
+          <dd class="col-sm-8">{{ conversion.developer }}</dd>
+          {% endif %}
+          {% if conversion.architect %}
+          <dt class="col-sm-4">Architect</dt>
+          <dd class="col-sm-8">{{ conversion.architect }}</dd>
+          {% endif %}
+          {% if conversion.general_contractor %}
+          <dt class="col-sm-4">General Contractor</dt>
+          <dd class="col-sm-8">{{ conversion.general_contractor }}</dd>
+          {% endif %}
+        </dl>
+      </div>
+      {% endif %}
+
+      {% if conversion.source_url %}
+      <p class="small text-muted">
+        <a href="{{ conversion.source_url }}" target="_blank" rel="noopener noreferrer">
+          📄 Source / Public Record
+        </a>
+      </p>
+      {% endif %}
+
+    </div>
+
+    <!-- Right: Financial Sidebar -->
+    <div class="col-lg-4">
+
+      {% if show_financials and conversion.financials %}
+      {% with f=conversion.financials %}
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-dark text-white fw-bold">
+          Financial Breakdown
+          <span class="badge bg-{% if f.data_confidence == 'high' %}success{% elif f.data_confidence == 'medium' %}warning text-dark{% else %}secondary{% endif %} ms-2 small">
+            {{ f.get_data_confidence_display }}
+          </span>
+        </div>
+        <div class="card-body p-0">
+          <table class="table table-sm table-bordered mb-0">
+            <tbody>
+              {% if f.purchase_price %}
+              <tr class="table-light">
+                <td class="fw-semibold ps-3">Purchase Price</td>
+                <td class="text-end pe-3">${{ f.purchase_price|intcomma }}</td>
+              </tr>
+              {% endif %}
+              {% if f.purchase_year %}
+              <tr>
+                <td class="fw-semibold ps-3">Purchase Year</td>
+                <td class="text-end pe-3">{{ f.purchase_year }}</td>
+              </tr>
+              {% endif %}
+              {% if f.rehab_cost_estimate %}
+              <tr>
+                <td class="fw-semibold ps-3">Rehab Cost (Est.)</td>
+                <td class="text-end pe-3">${{ f.rehab_cost_estimate|intcomma }}</td>
+              </tr>
+              {% endif %}
+              {% if f.total_project_cost %}
+              <tr class="table-warning">
+                <td class="fw-bold ps-3">Total Project Cost</td>
+                <td class="text-end pe-3 fw-bold">${{ f.total_project_cost|intcomma }}</td>
+              </tr>
+              {% endif %}
+              {% if f.tif_amount %}
+              <tr class="table-info">
+                <td class="fw-semibold ps-3">TIF Subsidy</td>
+                <td class="text-end pe-3">${{ f.tif_amount|intcomma }}</td>
+              </tr>
+              {% endif %}
+              {% if f.historic_tax_credits %}
+              <tr class="table-info">
+                <td class="fw-semibold ps-3">Historic Tax Credits</td>
+                <td class="text-end pe-3">${{ f.historic_tax_credits|intcomma }}</td>
+              </tr>
+              {% endif %}
+              {% if f.nmtc_amount %}
+              <tr class="table-info">
+                <td class="fw-semibold ps-3">New Markets Tax Credits</td>
+                <td class="text-end pe-3">${{ f.nmtc_amount|intcomma }}</td>
+              </tr>
+              {% endif %}
+              {% if f.total_public_subsidy %}
+              <tr class="table-success fw-bold">
+                <td class="ps-3">Total Public Subsidy</td>
+                <td class="text-end pe-3">${{ f.total_public_subsidy|intcomma }}</td>
+              </tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Monthly Carry -->
+      {% if f.avg_rent_monthly or f.avg_sale_price or f.avg_hoa_monthly or f.avg_property_tax_annual %}
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-secondary text-white fw-bold">Monthly Carry</div>
+        <div class="card-body p-0">
+          <table class="table table-sm table-bordered mb-0">
+            <tbody>
+              {% if f.avg_sale_price %}
+              <tr>
+                <td class="fw-semibold ps-3">Avg Sale Price</td>
+                <td class="text-end pe-3">${{ f.avg_sale_price|intcomma }}</td>
+              </tr>
+              {% endif %}
+              {% if f.avg_rent_monthly %}
+              <tr>
+                <td class="fw-semibold ps-3">Avg Rent / Mo</td>
+                <td class="text-end pe-3">${{ f.avg_rent_monthly|intcomma }}</td>
+              </tr>
+              {% endif %}
+              {% if f.avg_hoa_monthly %}
+              <tr>
+                <td class="fw-semibold ps-3">Avg HOA / Mo</td>
+                <td class="text-end pe-3">${{ f.avg_hoa_monthly|intcomma }}</td>
+              </tr>
+              {% endif %}
+              {% if f.avg_property_tax_annual %}
+              <tr>
+                <td class="fw-semibold ps-3">Property Tax / Yr</td>
+                <td class="text-end pe-3">${{ f.avg_property_tax_annual|intcomma }}</td>
+              </tr>
+              {% endif %}
+              {% if f.cost_per_unit %}
+              <tr class="table-light">
+                <td class="fw-semibold ps-3">Cost Per Unit</td>
+                <td class="text-end pe-3">${{ f.cost_per_unit|floatformat:0|intcomma }}</td>
+              </tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if f.data_sources %}
+      <p class="small text-muted px-1">
+        <strong>Sources:</strong> {{ f.data_sources }}
+      </p>
+      {% endif %}
+      {% endwith %}
+      {% endif %}
+
+      {% if not show_financials and conversion.financials %}
+      <!-- Paywall teaser for free/unauthenticated users -->
+      <div class="card border-0 shadow-sm mb-4 overflow-hidden position-relative">
+        <div class="card-header bg-dark text-white fw-bold d-flex align-items-center gap-2">
+          <span>🔒 Financial Breakdown</span>
+          <span class="badge bg-warning text-dark ms-auto">Analyst+</span>
+        </div>
+        <!-- Blurred preview of "real" data -->
+        <div class="card-body p-0" style="filter:blur(4px);user-select:none;pointer-events:none;">
+          <table class="table table-sm table-bordered mb-0">
+            <tbody>
+              <tr class="table-warning"><td class="fw-bold ps-3">Total Project Cost</td><td class="text-end pe-3">$██,███,███</td></tr>
+              <tr class="table-info"><td class="fw-semibold ps-3">TIF Subsidy</td><td class="text-end pe-3">$█,███,███</td></tr>
+              <tr class="table-info"><td class="fw-semibold ps-3">Historic Tax Credits</td><td class="text-end pe-3">$█,███,███</td></tr>
+              <tr class="table-success fw-bold"><td class="ps-3">Total Public Subsidy</td><td class="text-end pe-3">$██,███,███</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <!-- Overlay -->
+        <div class="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-end pb-4"
+             style="background:linear-gradient(to bottom, transparent 20%, rgba(255,255,255,0.92) 60%);">
+          <p class="fw-bold text-dark mb-2 text-center px-3">
+            TIF amounts, tax credits, rehab costs &amp; unit economics are included with Analyst access.
+          </p>
+          <a href="{% url 'construction:subscription_plans' %}" class="btn btn-warning fw-bold px-4">
+            View Plans — From $29/mo
+          </a>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- TIF District -->
+      {% if conversion.tif_district %}
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-warning text-dark fw-bold">TIF District</div>
+        <div class="card-body">
+          <div class="fw-semibold">{{ conversion.tif_district.name }}</div>
+          {% if conversion.tif_district.total_amount %}
+          <div class="small text-muted">
+            Total authorized: ${{ conversion.tif_district.total_amount|intcomma }}
+          </div>
+          {% endif %}
+          {% if conversion.tif_district.expiration_date %}
+          <div class="small text-muted">Expires: {{ conversion.tif_district.expiration_date|date:"Y" }}</div>
+          {% endif %}
+          {% if conversion.tif_district.sldc_url %}
+          <a href="{{ conversion.tif_district.sldc_url }}" target="_blank" rel="noopener" class="small">
+            SLDC Records →
+          </a>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- CTA -->
+      <div class="card border-0 bg-dark text-white">
+        <div class="card-body text-center py-4">
+          <h6 class="fw-bold mb-2">Want this analysis for your building?</h6>
+          <p class="small opacity-75 mb-3">
+            ETL pipelines, Power BI dashboards, and full financial modeling.
+            Public records + assessor data. Starting at $250/hr.
+          </p>
+          <a href="mailto:gregory.woodruff@cloudandsecurelimited.com?subject=STL Analysis Request — {{ conversion.name }}"
+             class="btn btn-warning btn-sm fw-bold w-100">Contact Cloud and Secure Limited</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Power BI Reports Section -->
+  {% if pbi_reports %}
+  <div class="mt-5">
+    <h5 class="fw-bold border-bottom pb-2 mb-4 d-flex align-items-center gap-2">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/New_Power_BI_Logo.svg/24px-New_Power_BI_Logo.svg.png"
+           alt="Power BI" width="24" height="24">
+      Interactive Data Reports
+    </h5>
+    {% for report in pbi_reports %}
+    <div class="mb-4">
+      <h6 class="fw-bold mb-1">{{ report.name }}</h6>
+      {% if report.description %}<p class="text-muted small mb-2">{{ report.description }}</p>{% endif %}
+      {% if report.embed_mode == 'public' and report.public_embed_url %}
+      <div class="ratio" style="--bs-aspect-ratio: {{ report.default_height_px }}px / 100%;">
+        <iframe title="{{ report.name }}"
+                src="{{ report.public_embed_url }}"
+                frameborder="0"
+                allowFullScreen="true"
+                style="width:100%;height:{{ report.default_height_px }}px;border:1px solid #e0e0e0;border-radius:8px;">
+        </iframe>
+      </div>
+      {% elif report.embed_mode == 'private' and report.report_id %}
+      <div id="pbi-embed-{{ report.pk }}"
+           class="pbi-embed-container"
+           style="height:{{ report.default_height_px }}px;border:1px solid #e0e0e0;border-radius:8px;background:#f8f9fa;"
+           data-workspace-id="{{ report.workspace_id }}"
+           data-report-id="{{ report.report_id }}">
+        <div class="d-flex align-items-center justify-content-center h-100 text-muted">
+          <div class="text-center">
+            <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+            Loading report…
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% elif show_powerbi %}
+  <!-- User has powerbi access but no reports are attached to this building yet -->
+  <div class="mt-5 alert alert-light border">
+    <strong>Power BI reports</strong> for this building are being prepared.
+    <a href="{% url 'construction:powerbi_reports' %}">Browse all available reports →</a>
+  </div>
+  {% elif not show_powerbi %}
+  <!-- Power BI upsell teaser -->
+  <div class="mt-5 card border-0 bg-light">
+    <div class="card-body d-flex align-items-center gap-4">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/New_Power_BI_Logo.svg/48px-New_Power_BI_Logo.svg.png"
+           alt="Power BI" width="48" height="48" class="flex-shrink-0">
+      <div>
+        <div class="fw-bold mb-1">Interactive Power BI dashboards available with Professional access</div>
+        <p class="small text-muted mb-2">
+          Crime overlay, walkability comparisons, rent trends, and TIF ROI analysis — embedded directly on each building page.
+        </p>
+        <a href="{% url 'construction:subscription_plans' %}" class="btn btn-dark btn-sm fw-bold">
+          Upgrade to Professional — $149/mo
+        </a>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Related Conversions -->
+  {% if related %}
+  <div class="mt-5">
+    <h5 class="fw-bold border-bottom pb-2 mb-4">
+      More in {{ conversion.neighborhood.name }}
+    </h5>
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-3">
+      {% for r in related %}
+      <div class="col">
+        <div class="card h-100 border-0 shadow-sm">
+          <div class="card-body">
+            <span class="badge bg-secondary mb-2">{{ r.get_original_building_type_display }}</span>
+            <h6 class="fw-bold mb-1">
+              <a href="{% url 'construction:conversion_detail' r.slug %}" class="text-decoration-none text-dark stretched-link">
+                {{ r.original_name|default:r.name }}
+              </a>
+            </h6>
+            {% if r.completion_year %}<div class="small text-muted">{{ r.completion_year }}</div>{% endif %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

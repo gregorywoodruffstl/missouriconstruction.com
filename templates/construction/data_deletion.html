@@ -1,0 +1,81 @@
+{% extends 'construction/base.html' %}
+
+{% block title %}Data Deletion | Cloud and Secure Limited{% endblock %}
+
+{% block content %}
+<div class="bg-gray-900 text-white py-10 px-4">
+    <div class="max-w-4xl mx-auto">
+        <p class="text-yellow-400 text-sm font-semibold uppercase tracking-widest mb-2">Cloud and Secure Limited</p>
+        <h1 class="text-4xl font-bold mb-2">Data Deletion Request</h1>
+        <p class="text-gray-300 mt-2">Facebook Login &mdash; User Data Deletion</p>
+    </div>
+</div>
+
+<div class="max-w-4xl mx-auto px-4 py-10">
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
+        <h2 class="text-xl font-bold text-blue-900 mb-2">Facebook Users</h2>
+        <p class="text-blue-800">If you used <strong>Facebook Login</strong> on any <strong>Cloud and Secure Limited</strong> platform and want to remove all data associated with your account, follow the steps below.</p>
+    </div>
+
+    <div class="space-y-8 text-gray-700">
+
+        <section>
+            <h2 class="text-2xl font-bold text-gray-900 mb-3">What Data We Store</h2>
+            <p>When you log in with Facebook, we receive and store:</p>
+            <ul class="list-disc pl-6 space-y-1 mt-2">
+                <li>Your Facebook name</li>
+                <li>Your Facebook email address</li>
+                <li>Your Facebook profile photo URL</li>
+                <li>A secure token linking your Facebook account to our platform</li>
+            </ul>
+            <p class="mt-2">We do <strong>not</strong> store your Facebook password, friends list, or private messages.</p>
+        </section>
+
+        <section>
+            <h2 class="text-2xl font-bold text-gray-900 mb-3">How to Request Deletion</h2>
+
+            <div class="bg-gray-50 border border-gray-200 rounded-lg p-6 space-y-4">
+                <div class="flex items-start gap-4">
+                    <span class="bg-yellow-400 text-gray-900 font-bold rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0">1</span>
+                    <div>
+                        <p class="font-semibold">Email us directly</p>
+                        <p>Send a deletion request to <a href="mailto:gregory.woodruff@cloudandsecurelimited.com" class="text-yellow-600 hover:underline">gregory.woodruff@cloudandsecurelimited.com</a> with subject line: <em>"Data Deletion Request — Missouri Construction"</em></p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-4">
+                    <span class="bg-yellow-400 text-gray-900 font-bold rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0">2</span>
+                    <div>
+                        <p class="font-semibold">Include your Facebook email</p>
+                        <p>Provide the email address associated with your Facebook account so we can locate and remove your data.</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-4">
+                    <span class="bg-yellow-400 text-gray-900 font-bold rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0">3</span>
+                    <div>
+                        <p class="font-semibold">We will confirm within 72 hours</p>
+                        <p>We will delete your account record and social login token, then send you a confirmation email.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2 class="text-2xl font-bold text-gray-900 mb-3">Revoke Facebook App Access</h2>
+            <p>You can also immediately revoke Missouri Construction's access to your Facebook data at any time:</p>
+            <ol class="list-decimal pl-6 space-y-1 mt-2">
+                <li>Go to <a href="https://www.facebook.com/settings?tab=applications" class="text-yellow-600 hover:underline" target="_blank">Facebook → Settings → Apps and Websites</a></li>
+                <li>Find <strong>Missouri Construction</strong> in the list</li>
+                <li>Click <strong>Remove</strong></li>
+            </ol>
+            <p class="mt-2 text-sm text-gray-500">Revoking app access on Facebook does not automatically delete data we have already stored. Please also email us to request full deletion.</p>
+        </section>
+
+        <section>
+            <h2 class="text-2xl font-bold text-gray-900 mb-3">Contact</h2>
+            <p><strong>Cloud and Secure Limited</strong><br>
+            Saint Louis, Missouri<br>
+            Email: <a href="mailto:gregory.woodruff@cloudandsecurelimited.com" class="text-yellow-600 hover:underline">gregory.woodruff@cloudandsecurelimited.com</a></p>
+        </section>
+    </div>
+</div>
+{% endblock %}
