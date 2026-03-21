@@ -4,13 +4,26 @@ echo "=== Startup: $(date) ==="
 echo "=== Working dir: $(pwd) ==="
 echo "=== SITE_MODE: ${SITE_MODE:-springfield} ==="
 
-# Activate Oryx-built virtual environment if present
+# Azure App Service stores packages in one of two locations depending on deploy method:
+# 1. /antenv              — Oryx/zipdeploy with SCM_DO_BUILD_DURING_DEPLOYMENT=true
+# 2. .python_packages     — GitHub Actions workflow deploy (most common)
 if [ -d "/antenv" ]; then
     echo "=== Activating /antenv ==="
     source /antenv/bin/activate
 fi
 
+if [ -d "/home/site/wwwroot/.python_packages" ]; then
+    echo "=== Adding .python_packages to PYTHONPATH ==="
+    export PYTHONPATH=/home/site/wwwroot/.python_packages/lib/site-packages:$PYTHONPATH
+fi
+
 export PYTHONPATH=/home/site/wwwroot:$PYTHONPATH
+
+# Verify Django is importable before proceeding
+python -c "import django; print('=== Django', django.__version__, 'ready ===')" || {
+    echo "FATAL: Django not importable — aborting startup"
+    exit 1
+}
 
 echo "=== Running migrations (60s timeout) ==="
 timeout 60 python manage.py migrate --no-input 2>&1 || echo "WARNING: migrate failed or timed out — starting gunicorn anyway"
@@ -26,7 +39,7 @@ else
 fi
 
 echo "=== Starting Gunicorn ==="
-exec gunicorn \
+exec python -m gunicorn \
   --workers 2 \
   --threads 2 \
   --timeout 120 \
