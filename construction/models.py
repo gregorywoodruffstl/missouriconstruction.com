@@ -73,6 +73,25 @@ class Project(models.Model):
         return self.images.count()
 
 
+def season_from_date(d):
+    """Return the astronomical season for a given date.
+    Spring:  Mar 20 – Jun 20
+    Summer:  Jun 21 – Sep 22
+    Fall:    Sep 23 – Dec 21
+    Winter:  Dec 22 – Mar 19
+    """
+    if d is None:
+        return ''
+    m, day = d.month, d.day
+    if (m == 3 and day >= 20) or (m in (4, 5)) or (m == 6 and day <= 20):
+        return 'spring'
+    if (m == 6 and day >= 21) or (m in (7, 8)) or (m == 9 and day <= 22):
+        return 'summer'
+    if (m == 9 and day >= 23) or (m in (10, 11)) or (m == 12 and day <= 21):
+        return 'fall'
+    return 'winter'
+
+
 class GalleryImage(models.Model):
     project = models.ForeignKey(Project, related_name='images', on_delete=models.CASCADE)
     image = models.ImageField(upload_to='gallery/%Y/%m/')
@@ -81,7 +100,8 @@ class GalleryImage(models.Model):
     season = models.CharField(
         max_length=10,
         choices=[('spring', 'Spring'), ('summer', 'Summer'), ('fall', 'Fall'), ('winter', 'Winter')],
-        blank=True
+        blank=True,
+        help_text='Auto-calculated from date taken — or override manually'
     )
     order = models.PositiveIntegerField(default=0, help_text='Display order (lower = first)')
     featured = models.BooleanField(default=False, help_text='Use as project cover photo')
@@ -91,6 +111,12 @@ class GalleryImage(models.Model):
 
     def __str__(self):
         return f"{self.project.title} — {self.caption or self.pk}"
+
+    def save(self, *args, **kwargs):
+        # Auto-calculate season from taken_date if not manually set
+        if self.taken_date and not self.season:
+            self.season = season_from_date(self.taken_date)
+        super().save(*args, **kwargs)
 
 
 class BidOpportunity(models.Model):
