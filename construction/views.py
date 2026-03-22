@@ -70,8 +70,11 @@ def gallery(request):
     busch_project = get_object_or_404(Project, slug='busch-stadium-iii')
     images = busch_project.images.all().order_by('taken_date', 'order', 'pk')
     season_filter = request.GET.get('season')
+    tag_filter = request.GET.get('tag')
     if season_filter:
         images = images.filter(season=season_filter)
+    if tag_filter:
+        images = images.filter(ai_tags__contains=tag_filter)
 
     # Group images by taken_date so each day becomes its own section
     grouped = []
@@ -83,6 +86,7 @@ def gallery(request):
         'images': images,
         'grouped_images': grouped,
         'current_season': season_filter,
+        'current_tag': tag_filter,
         'seasons': [('spring', 'Spring'), ('summer', 'Summer'), ('fall', 'Fall'), ('winter', 'Winter')],
     }
     return render(request, 'construction/gallery.html', context)

@@ -106,6 +106,8 @@ class GalleryImage(models.Model):
     )
     order = models.PositiveIntegerField(default=0, help_text='Display order (lower = first)')
     featured = models.BooleanField(default=False, help_text='Use as project cover photo')
+    ai_tags = models.JSONField(default=list, blank=True, help_text='Auto-generated tags from Azure AI Vision')
+    ai_caption = models.TextField(blank=True, help_text='Auto-generated description from Azure AI Vision')
 
     class Meta:
         ordering = ['order', 'taken_date']
@@ -113,11 +115,44 @@ class GalleryImage(models.Model):
     def __str__(self):
         return f"{self.project.title} — {self.caption or self.pk}"
 
+    def _run_ai_tagging(self):
+        """Call Azure AI Vision to tag this image. Runs after image is in Azure Storage."""
+        import os, requests as req
+        endpoint = os.getenv('AZURE_VISION_ENDPOINT', '').rstrip('/')
+        key = os.getenv('AZURE_VISION_KEY', '')
+        if not endpoint or not key:
+            return
+        try:
+            image_url = self.image.url
+        except Exception:
+            return
+        # Computer Vision 3.2 Analyze API — tags + description caption
+        url = f"{endpoint}/vision/v3.2/analyze?visualFeatures=Tags,Description"
+        try:
+            resp = req.post(
+                url,
+                json={'url': image_url},
+                headers={'Ocp-Apim-Subscription-Key': key, 'Content-Type': 'application/json'},
+                timeout=15,
+            )
+            resp.raise_for_status()
+            data = resp.json()
+            tags = [t['name'] for t in data.get('tags', []) if t.get('confidence', 0) >= 0.6]
+            captions = data.get('description', {}).get('captions', [])
+            caption_text = captions[0]['text'] if captions else ''
+            GalleryImage.objects.filter(pk=self.pk).update(ai_tags=tags, ai_caption=caption_text)
+        except Exception:
+            pass  # Never block a save due to Vision API failure
+
     def save(self, *args, **kwargs):
+        is_new = self.pk is None
         # Auto-calculate season from taken_date if not manually set
         if self.taken_date and not self.season:
             self.season = season_from_date(self.taken_date)
         super().save(*args, **kwargs)
+        # Run AI tagging on new images (after save so image is in Azure Storage)
+        if is_new and self.image and not self.ai_tags:
+            self._run_ai_tagging()
 
 
 class BidOpportunity(models.Model):
