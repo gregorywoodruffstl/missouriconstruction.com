@@ -5,10 +5,13 @@ from .models import (ProjectCategory, Project, GalleryImage, BidOpportunity,
                      SubscriptionPlan, UserSubscription, PowerBIReport)
 
 
-class GalleryImageInline(admin.TabularInline):
+class GalleryImageInline(admin.StackedInline):
     model = GalleryImage
-    extra = 3
+    extra = 1
     fields = ('image', 'caption', 'taken_date', 'season', 'order', 'featured')
+    verbose_name = 'Photo'
+    verbose_name_plural = 'Photos — click "Add another Photo" below to add more. Use "Save and continue editing" (not "Save and add another") to stay on this project.'
+    show_change_link = True
 
 
 @admin.register(ProjectCategory)

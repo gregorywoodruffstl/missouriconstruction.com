@@ -65,16 +65,23 @@ def project_detail(request, slug):
 
 
 def gallery(request):
-    """Busch Stadium III construction photo gallery."""
+    """Busch Stadium III construction photo gallery, grouped by date."""
+    from itertools import groupby
     busch_project = get_object_or_404(Project, slug='busch-stadium-iii')
-    images = busch_project.images.all()
+    images = busch_project.images.all().order_by('taken_date', 'order', 'pk')
     season_filter = request.GET.get('season')
     if season_filter:
         images = images.filter(season=season_filter)
 
+    # Group images by taken_date so each day becomes its own section
+    grouped = []
+    for date, day_images in groupby(images, key=lambda img: img.taken_date):
+        grouped.append((date, list(day_images)))
+
     context = {
         'project': busch_project,
         'images': images,
+        'grouped_images': grouped,
         'current_season': season_filter,
         'seasons': [('spring', 'Spring'), ('summer', 'Summer'), ('fall', 'Fall'), ('winter', 'Winter')],
     }
