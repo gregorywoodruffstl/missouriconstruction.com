@@ -50,6 +50,7 @@ class Project(models.Model):
     estimated_cost = models.DecimalField(max_digits=14, decimal_places=2, null=True, blank=True)
     featured = models.BooleanField(default=False, help_text='Show on homepage')
     cover_image = models.ImageField(upload_to='projects/covers/', null=True, blank=True)
+    facebook_post_url = models.URLField(blank=True, help_text='Facebook post URL — paste here after publishing to the Cardinals group')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

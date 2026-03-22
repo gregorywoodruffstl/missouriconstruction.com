@@ -5,6 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Missouri Construction{% endblock %}</title>
     <meta name="description" content="{% block meta_description %}Missouri Construction — documenting the projects, bids, and permits shaping Missouri.{% endblock %}">
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Missouri Construction">
+    <meta property="og:title" content="{% block og_title %}Missouri Construction{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Missouri Construction — documenting the projects, bids, and permits shaping Missouri.{% endblock %}">
+    <meta property="og:url" content="{% block og_url %}{{ request.build_absolute_uri }}{% endblock %}">
+    {% block og_image %}<meta property="og:image" content="https://missouriconstruction.com/static/images/og-default.jpg">{% endblock %}
+    <meta name="twitter:card" content="summary_large_image">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .nav-link { @apply text-gray-300 hover:text-white transition-colors duration-200; }

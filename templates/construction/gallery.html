@@ -3,7 +3,27 @@
 {% block title %}Busch Stadium III — Construction Gallery | Missouri Construction{% endblock %}
 {% block meta_description %}Over three years of original construction photography documenting the building of Busch Stadium III in St. Louis, Missouri. Spring, summer, fall, and winter across every phase.{% endblock %}
 
+{% block og_title %}{{ project.title }} — Construction Gallery | Missouri Construction{% endblock %}
+{% block og_description %}{{ project.description|truncatewords:30 }} See all {{ project.image_count }} photos at missouriconstruction.com{% endblock %}
+{% block og_url %}{{ request.build_absolute_uri }}{% endblock %}
+{% block og_image %}
+{% if project.cover_image %}
+<meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ project.cover_image.url }}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+{% endif %}
+{% endblock %}
+
 {% block content %}
+
+<!-- Cardinals Exhibition Game Banner (March 22–23, 2026) -->
+<div class="bg-red-700 text-white text-center py-3 px-4">
+    <p class="text-sm font-bold tracking-wide">
+        &#x26BE; <span class="text-yellow-300">TOMORROW NIGHT</span> — St. Louis Cardinals vs. Springfield Cardinals Exhibition Game &mdash;
+        The two cities this site serves, sharing the same diamond.
+        <a href="{% url 'construction:home' %}" class="underline text-yellow-200 hover:text-white ml-2">See Springfield projects &rarr;</a>
+    </p>
+</div>
 
 <div class="bg-gray-900 text-white py-12 px-4">
     <div class="max-w-5xl mx-auto text-center">
@@ -76,5 +96,30 @@
         {% endif %}
     </div>
 </section>
+
+<!-- Share This Gallery Section -->
+<div class="bg-gray-900 text-white py-8 px-4">
+    <div class="max-w-2xl mx-auto text-center">
+        <p class="text-yellow-400 text-xs font-bold uppercase tracking-widest mb-3">Share This Gallery</p>
+        {% if project.facebook_post_url %}
+        <a href="{{ project.facebook_post_url }}" target="_blank" rel="noopener"
+           class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition mr-3 mb-3">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073C24 5.404 18.627 0 12 0S0 5.404 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.791-4.697 4.533-4.697 1.312 0 2.686.235 2.686.235v2.97h-1.514c-1.491 0-1.956.93-1.956 1.874v2.25h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/></svg>
+            See this post on Facebook
+        </a>
+        {% endif %}
+        <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri|urlencode }}&quote=Two%20and%20a%20half%20years%20of%20Missouri%20construction%20photography%20%E2%80%94%20see%20the%20full%20gallery%20at%20missouriconstruction.com"
+           target="_blank" rel="noopener"
+           class="inline-flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg transition mb-3">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073C24 5.404 18.627 0 12 0S0 5.404 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.791-4.697 4.533-4.697 1.312 0 2.686.235 2.686.235v2.97h-1.514c-1.491 0-1.956.93-1.956 1.874v2.25h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/></svg>
+            Share Gallery on Facebook
+        </a>
+        <p class="text-gray-500 text-xs mt-3">
+            After posting to Facebook, copy the post URL and paste it into the admin
+            under Projects &rarr; {{ project.title }} &rarr; Facebook Post URL
+            so this button links directly to your post.
+        </p>
+    </div>
+</div>
 
 {% endblock %}
