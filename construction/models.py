@@ -126,23 +126,46 @@ class GalleryImage(models.Model):
             image_url = self.image.url
         except Exception:
             return
-        # Computer Vision 3.2 Analyze API — tags + description caption
-        url = f"{endpoint}/vision/v3.2/analyze?visualFeatures=Tags,Description"
+
+        tags = []
+        caption_text = ''
+
+        # Try Vision 4.0 (Florence model) first — richer, more descriptive captions
+        url_v4 = f"{endpoint}/computervision/imageanalysis:analyze?api-version=2023-10-01&features=caption,tags"
         try:
             resp = req.post(
-                url,
+                url_v4,
                 json={'url': image_url},
                 headers={'Ocp-Apim-Subscription-Key': key, 'Content-Type': 'application/json'},
-                timeout=15,
+                timeout=20,
             )
             resp.raise_for_status()
             data = resp.json()
-            tags = [t['name'] for t in data.get('tags', []) if t.get('confidence', 0) >= 0.6]
-            captions = data.get('description', {}).get('captions', [])
-            caption_text = captions[0]['text'] if captions else ''
-            GalleryImage.objects.filter(pk=self.pk).update(ai_tags=tags, ai_caption=caption_text)
+            tags = [
+                t['name'] for t in data.get('tagsResult', {}).get('values', [])
+                if t.get('confidence', 0) >= 0.6
+            ]
+            caption_text = data.get('captionResult', {}).get('text', '')
         except Exception:
-            pass  # Never block a save due to Vision API failure
+            # Fall back to Vision 3.2 if 4.0 not available on this resource
+            url_v3 = f"{endpoint}/vision/v3.2/analyze?visualFeatures=Tags,Description"
+            try:
+                resp = req.post(
+                    url_v3,
+                    json={'url': image_url},
+                    headers={'Ocp-Apim-Subscription-Key': key, 'Content-Type': 'application/json'},
+                    timeout=15,
+                )
+                resp.raise_for_status()
+                data = resp.json()
+                tags = [t['name'] for t in data.get('tags', []) if t.get('confidence', 0) >= 0.6]
+                captions = data.get('description', {}).get('captions', [])
+                caption_text = captions[0]['text'] if captions else ''
+            except Exception:
+                pass  # Never block a save due to Vision API failure
+
+        if tags or caption_text:
+            GalleryImage.objects.filter(pk=self.pk).update(ai_tags=tags, ai_caption=caption_text)
 
     def save(self, *args, **kwargs):
         is_new = self.pk is None
