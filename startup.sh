@@ -28,6 +28,15 @@ python -c "import django; print('=== Django', django.__version__, 'ready ===')" 
 echo "=== Running migrations (60s timeout) ==="
 timeout 60 python manage.py migrate --no-input 2>&1 || echo "WARNING: migrate failed or timed out — starting gunicorn anyway"
 
+echo "=== Setting django_site domain for allauth OAuth callbacks ==="
+timeout 15 python manage.py shell -c "
+import os
+from django.contrib.sites.models import Site
+domain = os.environ.get('SITE_DOMAIN', 'missouriconstruction.com')
+site, created = Site.objects.update_or_create(id=1, defaults={'domain': domain, 'name': domain})
+print(f'Site domain set to: {domain} (created={created})')
+" 2>&1 || echo "WARNING: could not update Sites table"
+
 if [ "${SITE_MODE}" = "construction" ]; then
     echo "=== CONSTRUCTION MODE: seeding STL conversion data ==="
     timeout 30 python manage.py seed_stl_conversions 2>&1 || echo "WARNING: seed_stl_conversions failed (may already exist)"
