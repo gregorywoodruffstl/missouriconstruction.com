@@ -1,4 +1,4 @@
-"""
+""" I don't know what the **** is going on
 Core models for the Missouri Construction multi-site ecosystem.
 These models are shared across ALL sites (SeekingSpringfield, Landscaping St Louis, etc.)
 """
@@ -126,6 +126,7 @@ class Article(models.Model):
         ('LIFESTYLE', 'Lifestyle & Culture'),
         ('REAL_ESTATE', 'Real Estate & Construction'),
         ('GUIDE', 'City Guide'),
+        ('SPORTS', 'Sports'),
     ]
     
     city = models.ForeignKey(City, on_delete=models.CASCADE, related_name='articles')
