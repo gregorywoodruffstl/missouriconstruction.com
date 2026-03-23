@@ -116,12 +116,8 @@ class GalleryImage(models.Model):
         return f"{self.project.title} — {self.caption or self.pk}"
 
     def _run_ai_tagging(self):
-        """Call Azure AI Vision to tag this image. Runs after image is in Azure Storage."""
-        import os, requests as req
-        endpoint = os.getenv('AZURE_VISION_ENDPOINT', '').rstrip('/')
-        key = os.getenv('AZURE_VISION_KEY', '')
-        if not endpoint or not key:
-            return
+        """Tag this image using GPT-4o Vision with project context. Falls back to Azure Vision."""
+        import os, requests as req, json
         try:
             image_url = self.image.url
         except Exception:
@@ -130,39 +126,99 @@ class GalleryImage(models.Model):
         tags = []
         caption_text = ''
 
-        # Try Vision 4.0 (Florence model) first — richer, more descriptive captions
-        url_v4 = f"{endpoint}/computervision/imageanalysis:analyze?api-version=2023-10-01&features=caption,tags"
-        try:
-            resp = req.post(
-                url_v4,
-                json={'url': image_url},
-                headers={'Ocp-Apim-Subscription-Key': key, 'Content-Type': 'application/json'},
-                timeout=20,
-            )
-            resp.raise_for_status()
-            data = resp.json()
-            tags = [
-                t['name'] for t in data.get('tagsResult', {}).get('values', [])
-                if t.get('confidence', 0) >= 0.6
-            ]
-            caption_text = data.get('captionResult', {}).get('text', '')
-        except Exception:
-            # Fall back to Vision 3.2 if 4.0 not available on this resource
-            url_v3 = f"{endpoint}/vision/v3.2/analyze?visualFeatures=Tags,Description"
+        # --- Primary: GPT-4o Vision (reads text in images, understands project context) ---
+        oai_endpoint = os.getenv('AZURE_OPENAI_ENDPOINT', '').rstrip('/')
+        oai_key = os.getenv('AZURE_OPENAI_KEY', '')
+        if oai_endpoint and oai_key:
             try:
+                project_title = self.project.title if self.project_id else 'Missouri construction project'
+                project_location = getattr(self.project, 'location', '') if self.project_id else ''
+                taken = str(self.taken_date) if self.taken_date else 'unknown date'
+                context = f"This is a construction photograph from the project '{project_title}'"
+                if project_location:
+                    context += f" at {project_location}"
+                context += (
+                    f" on {taken}. Describe everything you observe in detail: "
+                    "construction elements, equipment, landmarks, street signs, text visible in the image, "
+                    "lighting conditions, and time of day. Be specific and factual."
+                )
+                payload = {
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": [
+                                {"type": "text", "text": context},
+                                {"type": "image_url", "image_url": {"url": image_url}},
+                            ],
+                        }
+                    ],
+                    "max_tokens": 400,
+                }
                 resp = req.post(
-                    url_v3,
-                    json={'url': image_url},
-                    headers={'Ocp-Apim-Subscription-Key': key, 'Content-Type': 'application/json'},
-                    timeout=15,
+                    f"{oai_endpoint}/openai/deployments/gpt-4o/chat/completions?api-version=2024-02-15-preview",
+                    json=payload,
+                    headers={"api-key": oai_key, "Content-Type": "application/json"},
+                    timeout=30,
                 )
                 resp.raise_for_status()
-                data = resp.json()
-                tags = [t['name'] for t in data.get('tags', []) if t.get('confidence', 0) >= 0.6]
-                captions = data.get('description', {}).get('captions', [])
-                caption_text = captions[0]['text'] if captions else ''
+                description = resp.json()["choices"][0]["message"]["content"].strip()
+                caption_text = description
+                # Extract tags: split on punctuation, keep meaningful words
+                import re
+                words = re.findall(r'\b[a-zA-Z]{4,}\b', description.lower())
+                stop = {
+                    'this', 'that', 'with', 'from', 'have', 'been', 'they', 'their',
+                    'there', 'what', 'when', 'where', 'which', 'while', 'some', 'also',
+                    'into', "the", "and", "for", "are", "can", "visible", "image",
+                    "photo", "photograph", "shows", "appears", "appear", "overall",
+                    "taken", "scene", "several", "various",
+                }
+                seen = set()
+                for w in words:
+                    if w not in stop and w not in seen:
+                        seen.add(w)
+                        tags.append(w)
+                    if len(tags) >= 20:
+                        break
             except Exception:
-                pass  # Never block a save due to Vision API failure
+                pass  # Fall through to Florence
+
+        # --- Fallback: Azure Vision 4.0 (Florence) then 3.2 ---
+        if not caption_text:
+            vision_endpoint = os.getenv('AZURE_VISION_ENDPOINT', '').rstrip('/')
+            vision_key = os.getenv('AZURE_VISION_KEY', '')
+            if vision_endpoint and vision_key:
+                url_v4 = f"{vision_endpoint}/computervision/imageanalysis:analyze?api-version=2023-10-01&features=caption,tags"
+                try:
+                    resp = req.post(
+                        url_v4,
+                        json={'url': image_url},
+                        headers={'Ocp-Apim-Subscription-Key': vision_key, 'Content-Type': 'application/json'},
+                        timeout=20,
+                    )
+                    resp.raise_for_status()
+                    data = resp.json()
+                    tags = [
+                        t['name'] for t in data.get('tagsResult', {}).get('values', [])
+                        if t.get('confidence', 0) >= 0.6
+                    ]
+                    caption_text = data.get('captionResult', {}).get('text', '')
+                except Exception:
+                    url_v3 = f"{vision_endpoint}/vision/v3.2/analyze?visualFeatures=Tags,Description"
+                    try:
+                        resp = req.post(
+                            url_v3,
+                            json={'url': image_url},
+                            headers={'Ocp-Apim-Subscription-Key': vision_key, 'Content-Type': 'application/json'},
+                            timeout=15,
+                        )
+                        resp.raise_for_status()
+                        data = resp.json()
+                        tags = [t['name'] for t in data.get('tags', []) if t.get('confidence', 0) >= 0.6]
+                        captions = data.get('description', {}).get('captions', [])
+                        caption_text = captions[0]['text'] if captions else ''
+                    except Exception:
+                        pass  # Never block a save
 
         if tags or caption_text:
             GalleryImage.objects.filter(pk=self.pk).update(ai_tags=tags, ai_caption=caption_text)
