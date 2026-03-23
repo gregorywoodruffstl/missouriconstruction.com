@@ -103,4 +103,11 @@ urlpatterns = [
     path('articles/', views.article_list, name='article_list'),
     path('businesses/', views.business_directory, name='business_directory'),
     path('about/', views.about, name='about'),
+
+    # ============================================================================
+    # ACCESSIBLE CARDINALS SCHEDULE
+    # WCAG 2.1 SC 1.4.1 compliant — text labels used alongside color indicators
+    # MLB.com's official schedule fails this criterion in high contrast / dark mode
+    # ============================================================================
+    path('cardinals-schedule/', views.cardinals_schedule, name='cardinals_schedule'),
 ]

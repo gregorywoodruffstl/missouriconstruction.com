@@ -1082,3 +1082,148 @@ def about(request):
     ).order_by('start_date').select_related('city', 'city__state')[:4]
     return render(request, 'base/about.html', {'site': site, 'upcoming_events': upcoming_events})
 
+
+def cardinals_schedule(request):
+    """
+    Accessible St. Louis Cardinals monthly schedule.
+
+    MLB.com's official schedule uses color alone to distinguish home/away/spring
+    training games, which fails WCAG 2.1 SC 1.4.1 (Use of Color) and is
+    unreadable in high contrast and dark mode.
+
+    This view fetches live data from the public MLB Stats API (no key required)
+    and renders a calendar that uses text labels (H / A / ST / EX) alongside
+    color so it works for all users regardless of display settings.
+
+    Cardinals team ID: 138
+    Busch Stadium venue ID: 2889
+    """
+    import urllib.request as _url_req
+    import json as _json
+    import calendar as _cal
+    from datetime import date as _date
+
+    today = _date.today()
+
+    # Month/year from query string, default to current month
+    try:
+        year = int(request.GET.get('year', today.year))
+        month = int(request.GET.get('month', today.month))
+        if month < 1:
+            month = 12
+            year -= 1
+        if month > 12:
+            month = 1
+            year += 1
+        year = max(2024, min(2030, year))
+    except (ValueError, TypeError):
+        year, month = today.year, today.month
+
+    # Prev / next month navigation
+    prev_year, prev_month = (year - 1, 12) if month == 1 else (year, month - 1)
+    next_year, next_month = (year + 1, 1) if month == 12 else (year, month + 1)
+
+    _, last_day = _cal.monthrange(year, month)
+    start_date = f"{year}-{month:02d}-01"
+    end_date = f"{year}-{month:02d}-{last_day:02d}"
+
+    # MLB Stats API — public endpoint, no auth required
+    api_url = (
+        f"https://statsapi.mlb.com/api/v1/schedule"
+        f"?teamId=138&startDate={start_date}&endDate={end_date}"
+        f"&sportId=1&hydrate=team,venue"
+    )
+
+    games_by_date = {}
+    api_error = False
+    try:
+        req = _url_req.Request(api_url, headers={'User-Agent': 'SeekingSpringfield/1.0'})
+        with _url_req.urlopen(req, timeout=6) as resp:
+            data = _json.loads(resp.read().decode())
+
+        for date_entry in data.get('dates', []):
+            date_str = date_entry['date']
+            day_games = []
+            for game in date_entry.get('games', []):
+                home = game['teams']['home']['team']
+                away = game['teams']['away']['team']
+                is_home = home.get('id') == 138
+                opponent_name = away.get('teamName', '') if is_home else home.get('teamName', '')
+                opponent_abbr = away.get('abbreviation', '') if is_home else home.get('abbreviation', '')
+                game_type = game.get('gameType', 'R')  # R=Regular, S=Spring, E=Exhibition
+
+                # Convert UTC game time to Central (CDT=UTC-5 for March-October)
+                game_time_ct = ''
+                game_date_utc = game.get('gameDate', '')
+                if game_date_utc and 'T' in game_date_utc:
+                    t = game_date_utc.split('T')[1].rstrip('Z')
+                    parts = t.split(':')
+                    h_utc, m_utc = int(parts[0]), int(parts[1])
+                    h_ct = (h_utc - 5) % 24  # CDT offset
+                    ampm = 'PM' if h_ct >= 12 else 'AM'
+                    h12 = h_ct % 12 or 12
+                    game_time_ct = f"{h12}:{m_utc:02d} {ampm} CT"
+
+                status = game.get('status', {}).get('abstractGameState', '')
+                score = ''
+                if status == 'Final':
+                    h_score = game['teams']['home'].get('score', 0)
+                    a_score = game['teams']['away'].get('score', 0)
+                    stl_score = h_score if is_home else a_score
+                    opp_score = a_score if is_home else h_score
+                    if game.get('isTie'):
+                        score = f"T {stl_score}-{opp_score}"
+                    elif (game['teams']['home'].get('isWinner') and is_home) or \
+                         (game['teams']['away'].get('isWinner') and not is_home):
+                        score = f"W {stl_score}-{opp_score}"
+                    else:
+                        score = f"L {stl_score}-{opp_score}"
+
+                day_games.append({
+                    'is_home': is_home,
+                    'opponent': opponent_name,
+                    'opponent_abbr': opponent_abbr,
+                    'time': game_time_ct,
+                    'game_type': game_type,
+                    'status': status,
+                    'score': score,
+                })
+            games_by_date[date_str] = day_games
+    except Exception:
+        api_error = True
+
+    # Build Sunday-first calendar weeks with game data embedded
+    sunday_cal = _cal.Calendar(firstweekday=6)
+    weeks = []
+    for week in sunday_cal.monthdayscalendar(year, month):
+        week_days = []
+        for day in week:
+            if day == 0:
+                week_days.append(None)
+            else:
+                d_str = f"{year}-{month:02d}-{day:02d}"
+                week_days.append({
+                    'day': day,
+                    'date_str': d_str,
+                    'is_today': (day == today.day and month == today.month and year == today.year),
+                    'games': games_by_date.get(d_str, []),
+                })
+        weeks.append(week_days)
+
+    domain = request.get_host()
+    site = Site.objects.filter(domain_name=domain, is_active=True).first()
+
+    return render(request, 'base/cardinals_schedule.html', {
+        'site': site,
+        'year': year,
+        'month': month,
+        'month_name': _cal.month_name[month],
+        'weeks': weeks,
+        'today': today,
+        'prev_year': prev_year,
+        'prev_month': prev_month,
+        'next_year': next_year,
+        'next_month': next_month,
+        'api_error': api_error,
+    })
+
