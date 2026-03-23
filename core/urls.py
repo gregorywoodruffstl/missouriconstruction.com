@@ -10,17 +10,18 @@ urlpatterns = [
     # Homepage
     path('', views.home, name='home'),
 
+    # Article detail: /article/springfield-il-city-guide/
+    # MUST be before city_home — otherwise 'article' matches <str:state>
+    path('article/<slug:slug>/', views.article_detail, name='article_detail'),
+
+    # API endpoint for article view tracking
+    path('api/articles/<int:article_id>/view/', views.article_view_api, name='article_view_api'),
+
     # City image upload: /il/springfield/upload/
     path('<str:state>/<slug:city_slug>/upload/', views.upload_city_image, name='upload_city_image'),
 
     # City homepage: /il/springfield/
     path('<str:state>/<slug:city_slug>/', views.city_home, name='city_home'),
-
-    # Article detail: /article/springfield-il-city-guide/
-    path('article/<slug:slug>/', views.article_detail, name='article_detail'),
-
-    # API endpoint for article view tracking
-    path('api/articles/<int:article_id>/view/', views.article_view_api, name='article_view_api'),
 
     # Weather JSON endpoint (async — called by city page JavaScript)
     path('api/weather/<str:state>/<slug:city_slug>/', views.weather_json, name='weather_json'),
